@@ -27,9 +27,10 @@ export type Handoff = {
   id: string; person_id: string; project_id: string; questions: unknown; thanks: string | null;
   answers: unknown; brief: unknown; token: string; status: string;
 };
+export type DigestRow = { id: string; week: string; text: string; shared_at: string | null };
 export type Tables = {
   people: Person[]; projects: Project[]; project_members: ProjectMember[]; tasks: Task[];
-  checkins: Checkin[]; blockers: Blocker[]; overtime: Overtime[]; handoffs: Handoff[];
+  checkins: Checkin[]; blockers: Blocker[]; overtime: Overtime[]; handoffs: Handoff[]; digests: DigestRow[];
 };
 
 const uid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -111,6 +112,7 @@ export const seed: Tables = {
   ],
   overtime: [{ id: uid(401), person_id: P.chloe, reason: "Conference deadline", starts: "2026-11-02", ends: "2026-11-08" }],
   handoffs: [],
+  digests: [],
 };
 
 // Seeded check-ins get the same rule-based parse so the demo data has structure from the start.

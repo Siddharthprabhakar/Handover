@@ -80,3 +80,10 @@ create table if not exists handoffs (
 );
 
 -- Demo: row level security off. Keys stay on the server.
+
+create table if not exists digests (
+  id uuid primary key default gen_random_uuid(),
+  week date unique not null,
+  text text not null,
+  shared_at timestamptz
+);

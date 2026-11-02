@@ -48,7 +48,7 @@ export async function update<K extends TableName>(t: K, id: string, patch: Parti
 // used by `npm run seed`
 export async function seedSupabase() {
   if (!sb) throw new Error("Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY first.");
-  const order: TableName[] = ["people", "projects", "project_members", "tasks", "checkins", "blockers", "overtime", "handoffs"];
+  const order: TableName[] = ["people", "projects", "project_members", "tasks", "checkins", "blockers", "overtime", "handoffs", "digests"];
   for (const t of order) {
     if (!seed[t].length) continue;
     const { error } = await sb.from(t).upsert(seed[t] as never[]);

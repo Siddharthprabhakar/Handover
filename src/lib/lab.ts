@@ -10,9 +10,9 @@ export const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
 export async function loadLab() {
-  const [people, projects, members, tasks, checkins, blockers, overtime] = await Promise.all([
+  const [people, projects, members, tasks, checkins, blockers, overtime, digests] = await Promise.all([
     list("people"), list("projects"), list("project_members"), list("tasks"),
-    list("checkins"), list("blockers"), list("overtime"),
+    list("checkins"), list("blockers"), list("overtime"), list("digests"),
   ]);
   const ras = people.filter((p) => p.role === "ra");
   const byId = new Map(people.map((p) => [p.id, p]));
@@ -23,6 +23,6 @@ export async function loadLab() {
   };
   const projectsOf = (personId: string) =>
     members.filter((m) => m.person_id === personId).map((m) => projects.find((p) => p.id === m.project_id)!.name);
-  return { people, ras, projects, members, tasks, checkins, weekCheckins, blockers, overtime, byId, load, projectsOf };
+  return { people, ras, projects, members, tasks, checkins, weekCheckins, blockers, overtime, digests, byId, load, projectsOf };
 }
 export type Lab = Awaited<ReturnType<typeof loadLab>>;

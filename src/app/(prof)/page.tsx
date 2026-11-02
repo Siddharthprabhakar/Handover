@@ -1,4 +1,6 @@
 import { Avatar, Card, Chip, PageHeader } from "@/components/ui";
+import { DigestCard } from "@/components/DigestCard";
+import { ReminderButton } from "@/components/ReminderButton";
 import { getDigest } from "@/lib/digest";
 import { WEEK, fmtDate, initials, loadLab } from "@/lib/lab";
 
@@ -13,6 +15,7 @@ export default async function LabOverview() {
   const onTrackPct = Math.round(((lab.ras.length - flagged.size) / lab.ras.length) * 100);
   const dots = Math.round((onTrackPct / 100) * 32);
   const activeOvertime = lab.overtime.filter((o) => o.starts <= WEEK && o.ends >= WEEK);
+  const saved = lab.digests.find((d) => d.week === WEEK);
   const attention = digest.stuck.length + digest.missing.length + digest.needs_tasks.length;
 
   return (
@@ -59,11 +62,7 @@ export default async function LabOverview() {
 
       <div className="grid items-start gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-3.5 rounded-[28px] bg-crimson p-6 text-white">
-            <span className="self-start rounded-full bg-bg px-2.5 py-0.5 text-xs font-semibold text-muted">Suggested by Muse</span>
-            <h2 className="font-heading text-[26px] font-bold">Weekly digest</h2>
-            <p className="leading-relaxed">{digest.summary}</p>
-          </div>
+          <DigestCard key={saved?.text ?? digest.summary} initialText={saved?.text ?? digest.summary} initialShared={Boolean(saved?.shared_at)} />
           <Card>
             <h2 className="mb-2 font-heading text-lg font-bold">Common support requests</h2>
             {digest.support.length === 0 && <p className="text-sm text-muted">Nothing requested this week.</p>}
@@ -108,6 +107,7 @@ export default async function LabOverview() {
                 <p className="text-sm text-muted">
                   {c?.reminders_sent ?? 0} reminder{c?.reminders_sent === 1 ? "" : "s"} sent so far. On {p ? lab.projectsOf(p.id).length : 0} project(s), so each is unreported.
                 </p>
+                <div><ReminderButton kind="small" label="Send reminder now" personId={p?.id} disabled={(c?.reminders_sent ?? 0) >= 2} /></div>
               </Card>
             );
           })}
