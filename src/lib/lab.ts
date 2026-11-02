@@ -1,7 +1,7 @@
 import { list } from "./db";
 
-/** The demo is pinned to this week so seeded data lines up. */
-export const WEEK = "2026-11-02";
+import { WEEK } from "./demo";
+export { WEEK };
 
 export const initials = (name: string) =>
   name.replace(/^Dr\.\s*/, "").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();

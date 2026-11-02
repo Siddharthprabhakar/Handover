@@ -166,7 +166,7 @@ export function NewProjectForm({ ras }: { ras: Load[] }) {
               {over.length > 0 ? (
                 <div className="mt-3 rounded-[14px] bg-warn-soft p-3 text-[13px] text-ink">
                   <b className="mb-1 block text-warn">Over a weekly limit</b>
-                  {over.map((o) => <div key={o.id}>{first(o.name)} would reach {o.hours} of {o.weeklyHours} hours and {o.tasks} of {o.maxTasks} tasks. Reassign a phase 1 task to continue.</div>)}
+                  {over.map((o) => <div key={o.id}>{o.detail} Reassign a phase 1 task to continue.</div>)}
                 </div>
               ) : (
                 <div className="mt-3 rounded-[14px] bg-ok-soft p-3 text-[13px] font-medium text-ok">Phase 1 stays within everyone&apos;s weekly limits. Hours are estimates.</div>

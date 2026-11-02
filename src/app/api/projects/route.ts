@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   const over = phaseOneCheck(plan, loadsOf(lab));
   if (over.length) {
     return Response.json(
-      { error: `${over.map((o) => `${o.name} would reach ${o.hours} of ${o.weeklyHours} hours and ${o.tasks} tasks`).join("; ")}. Reassign those tasks first.`, over },
+      { error: `${over.map((o) => o.detail).join(" ")} Reassign those tasks first.`, over },
       { status: 409 },
     );
   }
