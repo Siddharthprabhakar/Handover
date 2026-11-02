@@ -33,10 +33,14 @@ async function chat(system: string, user: string): Promise<string> {
 const extractJson = (s: string) => JSON.parse(s.replace(/^```(?:json)?\s*|\s*```$/g, "").trim());
 
 /** Run one Muse job and return validated JSON. Retries once on bad output. */
-export async function museJson<J extends JobName>(job: J, user: string): Promise<z.infer<(typeof schemas)[J]>> {
+export async function museJson<J extends JobName>(
+  job: J,
+  user: string,
+  fallback?: z.infer<(typeof schemas)[J]>, // mock mode: a rule-based answer computed from the real input, instead of the saved sample
+): Promise<z.infer<(typeof schemas)[J]>> {
   type R = z.infer<(typeof schemas)[J]>;
   const schema = schemas[job] as z.ZodType;
-  if (museMode() === "mock") return schema.parse(MOCK[job]) as R;
+  if (museMode() === "mock") return schema.parse(fallback ?? MOCK[job]) as R;
   let prompt = user;
   let lastError = "";
   for (let attempt = 0; attempt < 2; attempt++) {

@@ -1,3 +1,5 @@
+import { heuristicParse } from "./checkin";
+
 // Demo data. All names are fake. Single source for the in-memory fallback and `npm run seed`.
 export type Person = {
   id: string; name: string; email: string; role: "professor" | "ra";
@@ -13,7 +15,7 @@ export type Task = {
   assignee: string | null; status: "open" | "done"; due: string | null;
 };
 export type Checkin = {
-  id: string; person_id: string; week: string; raw: { text: string } | null; parsed: unknown;
+  id: string; person_id: string; week: string; raw: { text: string; fields?: unknown } | null; parsed: unknown;
   token: string; submitted_at: string | null; reminders_sent: number;
 };
 export type Blocker = {
@@ -110,3 +112,11 @@ export const seed: Tables = {
   overtime: [{ id: uid(401), person_id: P.chloe, reason: "Conference deadline", starts: "2026-11-02", ends: "2026-11-08" }],
   handoffs: [],
 };
+
+// Seeded check-ins get the same rule-based parse so the demo data has structure from the start.
+for (const c of seed.checkins) {
+  if (!c.raw || c.parsed) continue;
+  const m = seed.project_members.find((x) => x.person_id === c.person_id);
+  const pr = seed.projects.find((p) => p.id === m?.project_id);
+  c.parsed = heuristicParse(c.raw.text, pr ? [{ name: pr.name, phase: pr.current_phase }] : []);
+}
