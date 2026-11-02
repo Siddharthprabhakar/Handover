@@ -39,3 +39,22 @@ People who could work on it, with their current load: ${JSON.stringify(input.peo
 Return JSON: {"phases":[{"name": string (one of the phases above, in order),"tasks":[{"title": string,"hours": number,"owner": string|null (a name from the list, or null)}]}]}
 Give each phase 1-3 concrete tasks. Hours are realistic estimates. Phase 1 tasks are assigned now, so give them only to people with room (open tasks under 5, hours under their weekly limit); later phases can use any listed person.`;
 }
+
+export function questionsPrompt(ctx: unknown) {
+  return `A research assistant is leaving the lab and the professor wants a handoff. Here is everything we know about them:
+${JSON.stringify(ctx)}
+
+Return JSON: {"questions":[{"text": string,"source": string}],"thanks": string}
+- 6 to 8 questions that help the next person take over: repos and what changed, where recordings/files/trackers live and who has access, decisions and why, accounts to hand back, advice for day one, and always one asking if anything was unclear or they felt unsupported.
+- "source" says where the question came from, e.g. "From: <task title>" or "Always asked".
+- "thanks" is a short, warm note of thanks written ONLY from their completed tasks. Do not mention problems or criticism, whatever the rest of the data says.`;
+}
+
+export function briefPrompt(ctx: unknown, qa: { question: string; answer: string }[]) {
+  return `Compile a handoff brief for the next person taking over from a departing research assistant.
+Records: ${JSON.stringify(ctx)}
+Questions and the assistant's own answers: ${JSON.stringify(qa)}
+
+Return JSON: {"where_we_are": string,"contributed": string,"code_and_backups":[{"name": string,"detail": string,"backup": string}],"decisions": string,"open_work": string,"advice": string,"unanswered": string[]}
+Use their answers and the records only. List every question with an empty answer in "unanswered". Do not invent repos, paths or dates.`;
+}
