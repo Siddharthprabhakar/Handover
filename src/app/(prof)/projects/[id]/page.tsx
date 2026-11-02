@@ -33,7 +33,8 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
   const events = [
     ...blockers.map((b) => ({ at: b.opened_at, text: `${lab.byId.get(b.person_id ?? "")?.name.split(" ")[0]}: ${b.quote}`, tag: "blocker" })),
     ...lab.weekCheckins
-      .filter((c) => c.submitted_at && members.some((m) => m.id === c.person_id) && !blockers.some((b) => b.person_id === c.person_id))
+      .filter((c) => c.submitted_at && members.some((m) => m.id === c.person_id) && !blockers.some((b) => b.person_id === c.person_id)
+        && (c.parsed as { projects: { project: string }[] } | null)?.projects.some((x) => x.project === project.name))
       .map((c) => ({ at: c.submitted_at!, text: `${lab.byId.get(c.person_id)?.name.split(" ")[0]}: ${(c.raw?.text ?? "").slice(0, 110)}`, tag: "" })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 4);
 
