@@ -10,7 +10,11 @@ const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 export const usingSupabase = Boolean(url && key);
 
-const sb: SupabaseClient | null = usingSupabase ? createClient(url!, key!, { auth: { persistSession: false } }) : null;
+// Next.js memoizes identical GET fetches within one render, which would hide our own writes from a re-read.
+// Passing an AbortSignal opts out (see the fetch docs, "Memoization").
+const freshFetch: typeof fetch = (input, init) => fetch(input, { ...init, signal: init?.signal ?? new AbortController().signal });
+
+const sb: SupabaseClient | null = usingSupabase ? createClient(url!, key!, { auth: { persistSession: false }, global: { fetch: freshFetch } }) : null;
 
 // shortcut: without Supabase env vars the app runs on in-memory demo data that resets on restart.
 const g = globalThis as { __handoverMem?: Tables };
