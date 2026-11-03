@@ -32,6 +32,8 @@ export const getSession = cache(async (): Promise<Session | null> => {
 
   let found = await personWithLab(userId);
   if (!found) {
+    // a still-valid token can outlive its user (account deleted in Supabase): ask Supabase once, only on this rare path
+    if (!(await sb.auth.getUser()).data.user) return null;
     // first sign-in after sign-up: create the lab and the professor from the sign-up details
     const meta = (claims.user_metadata ?? {}) as { name?: string; lab_name?: string };
     const email = claims.email ?? "";
@@ -55,6 +57,6 @@ export const getSession = cache(async (): Promise<Session | null> => {
 /** For pages: send signed-out users to the login screen. */
 export async function requireProfessor(): Promise<Session> {
   const s = await getSession();
-  if (!s) redirect("/login");
+  if (!s) redirect("/login?fresh=1"); // "fresh" lets the sign-in page show even if an old token is still in the cookie
   return s;
 }

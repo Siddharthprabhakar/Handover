@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
   const needsVerify = aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2";
   if (needsSetup && !path.startsWith("/security/setup")) return go("/security/setup");
   if (needsVerify && !path.startsWith("/security/verify")) return go("/security/verify");
-  if (!needsSetup && !needsVerify && (path === "/login" || path === "/signup" || path.startsWith("/security"))) return go("/");
+  if (!needsSetup && !needsVerify && !request.nextUrl.searchParams.has("fresh") && (path === "/login" || path === "/signup" || path.startsWith("/security"))) return go("/");
   return response;
 }
 

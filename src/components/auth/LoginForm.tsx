@@ -40,7 +40,7 @@ export function LoginForm() {
         {error && <p className="text-[13px] text-crimson">{error}</p>}
         <button className={btnCls} disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
       </form>
-      <p className="text-center text-[13px] text-muted">New here? <Link href="/signup" className="font-semibold text-crimson">Create a lab</Link></p>
+      <p className="text-center text-[13px] text-muted">New here? <Link href="/signup?fresh=1" className="font-semibold text-crimson">Create a lab</Link></p>
     </AuthShell>
   );
 }
