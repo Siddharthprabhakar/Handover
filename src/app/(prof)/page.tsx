@@ -98,8 +98,10 @@ export default async function LabOverview() {
         <div className="flex flex-col gap-3">
           <div className="flex items-baseline gap-2 px-1">
             <h2 className="font-heading text-xl font-bold">Needs attention</h2>
-            <span className="text-sm text-muted">/{attention}</span>
+            <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson">{attention}</span>
           </div>
+          {/* long lists scroll inside the column so the rest of the page keeps its shape */}
+          <div className="flex max-h-[640px] flex-col gap-3 overflow-y-auto pr-1">
           {digest.stuck.map((s) => {
             const p = byName.get(s.person);
             return (
@@ -153,6 +155,8 @@ export default async function LabOverview() {
               </Card>
             );
           })}
+          {attention === 0 && <Card className="!rounded-[22px] !p-[18px] text-sm text-muted">Nobody needs attention this week.</Card>}
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">
