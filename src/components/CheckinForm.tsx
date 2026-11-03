@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Card, Chip } from "./ui";
+import { VoiceCheckin } from "./VoiceCheckin";
 
 type Project = { id: string; name: string; kind: "lab" | "thesis" };
 
@@ -58,6 +59,7 @@ export function CheckinForm({ token, name, projects, planned }: { token: string;
               })}
             </>
           )}
+          <VoiceCheckin token={token} onText={(t) => setF((x) => ({ ...x, challenges: x.challenges ? `${x.challenges}\n${t}` : t }))} />
           <Label>What challenges or confusions did you have? Still need help?</Label>
           <textarea rows={2} className={`${field} mt-1.5`} value={f.challenges} onChange={(e) => setF({ ...f, challenges: e.target.value })} />
           <Label>Plans for next week</Label>

@@ -1,6 +1,7 @@
 import type { Lab } from "./lab";
 import type { z } from "zod";
 import type { ProjectSummary } from "./schemas";
+import type { FileRow } from "./seed";
 
 export type SummaryResult = z.infer<typeof ProjectSummary>;
 
@@ -18,7 +19,7 @@ function recentCheckins(lab: Lab, memberIds: string[]) {
 }
 
 /** Everything Muse may use to summarise one project, taken from the lab's own records. */
-export function summaryContext(lab: Lab, projectId: string) {
+export function summaryContext(lab: Lab, projectId: string, files: FileRow[] = []) {
   const project = lab.projects.find((p) => p.id === projectId)!;
   const name = (id: string | null) => (id ? (lab.byId.get(id)?.name ?? "someone") : "unassigned");
   const tasks = lab.tasks.filter((t) => t.project_id === projectId);
@@ -29,6 +30,7 @@ export function summaryContext(lab: Lab, projectId: string) {
     blockers: lab.blockers.filter((b) => b.project_id === projectId && !b.resolved_at).map((b) => ({ person: name(b.person_id), phase: project.phase_template[b.phase - 1], quote: b.quote })),
     resolvedBlockers: lab.blockers.filter((b) => b.project_id === projectId && b.resolved_at).map((b) => ({ person: name(b.person_id), phase: project.phase_template[b.phase - 1], quote: b.quote, resolved: b.resolved_at!.slice(0, 10) })),
     checkins: recentCheckins(lab, memberIds).map((c) => ({ date: c.submitted_at!.slice(0, 10), person: name(c.person_id), text: c.raw!.text.slice(0, 600) })),
+    recordings: files.filter((f) => f.project_id === projectId && f.transcript_text).map((f) => ({ title: f.title, who: f.participant_label ?? name(f.person_id), text: f.transcript_text!.slice(0, 1500) })),
     people: memberIds.map((id) => name(id)),
   };
 }

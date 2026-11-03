@@ -9,6 +9,7 @@ const KEY = process.env.MODEL_API_KEY;
 // Muse thinks before it answers, which takes several seconds, so keep that short. Other providers (OpenAI, Groq...) get no such field unless MUSE_REASONING is set.
 const EFFORT = process.env.MUSE_REASONING ?? (BASE.includes("api.meta.ai") ? "minimal" : "");
 
+export const museConfig = { BASE, MODEL, KEY };
 export const museMode = () => (process.env.MUSE_MOCK === "1" || !KEY ? "mock" : "live");
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

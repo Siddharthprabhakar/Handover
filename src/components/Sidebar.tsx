@@ -11,6 +11,7 @@ const ITEMS = [
   { href: "/people", label: "People", icon: "users" },
   { href: "/workload", label: "Workload", icon: "clock" },
   { href: "/checkins", label: "Check-ins", icon: "cc" },
+  { href: "/files", label: "Files", icon: "mic" },
 ] as const;
 
 function Logo() {

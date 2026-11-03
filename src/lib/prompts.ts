@@ -66,3 +66,11 @@ Data: ${JSON.stringify(ctx)}
 Return JSON: {"summary": string (2-3 plain sentences),"progress": string (one sentence on what is done and what is in progress),"risks": string[] (real problems visible in the data, quoting a person's own words where there are blockers; empty if none),"next_steps": string[] (2-4 concrete next steps drawn from open tasks and blockers)}.
 Use only the data. Do not invent people, dates or numbers. If there is very little data, say so plainly.`;
 }
+
+export function interviewPrompt(transcript: string, context: { title: string; project: string | null }) {
+  return `A researcher recorded "${context.title}"${context.project ? ` for the project "${context.project}"` : ""}. Transcript (speaker labels may be generic):
+"""${transcript}"""
+
+Return JSON: {"summary": string (3-4 plain sentences),"themes":[{"title": string,"description": string (one sentence),"quotes": string[] (1-3 exact quotes copied from the transcript)}],"follow_ups": string[] (up to 4 questions worth asking next)}.
+Find 2-5 themes. Quotes must be copied word for word from the transcript. Do not invent anything the transcript does not say.`;
+}

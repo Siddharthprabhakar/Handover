@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { list } from "@/lib/db";
 import { loadLab } from "@/lib/lab";
 import { museJson } from "@/lib/muse";
 import { summaryPrompt } from "@/lib/prompts";
@@ -16,9 +17,9 @@ export async function POST(req: Request) {
   if (!session) return Response.json({ error: "Sign in required" }, { status: 401 });
   const lab = await loadLab(session.labId);
   if (!lab.projects.some((p) => p.id === body.data.projectId)) return Response.json({ error: "Project not found" }, { status: 404 });
-  const ctx = summaryContext(lab, body.data.projectId);
+  const ctx = summaryContext(lab, body.data.projectId, await list("files", { col: "lab_id", eq: session.labId }));
   try {
-    return Response.json({ summary: await museJson("summary", summaryPrompt(ctx), heuristicSummary(ctx)), basedOn: { checkins: ctx.checkins.length, resolved: ctx.resolvedBlockers.length } });
+    return Response.json({ summary: await museJson("summary", summaryPrompt(ctx), heuristicSummary(ctx)), basedOn: { checkins: ctx.checkins.length, resolved: ctx.resolvedBlockers.length, recordings: ctx.recordings.length } });
   } catch (e) {
     return Response.json({ error: e instanceof Error ? e.message : "Muse failed" }, { status: 502 });
   }

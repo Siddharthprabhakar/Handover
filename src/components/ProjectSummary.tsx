@@ -6,7 +6,7 @@ import { Card } from "./ui";
 
 export function ProjectSummary({ projectId }: { projectId: string }) {
   const [s, setS] = useState<SummaryResult | null>(null);
-  const [based, setBased] = useState<{ checkins: number; resolved: number } | null>(null);
+  const [based, setBased] = useState<{ checkins: number; resolved: number; recordings: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,7 +36,7 @@ export function ProjectSummary({ projectId }: { projectId: string }) {
       {s && (
         <div className="flex flex-col gap-3 text-sm leading-relaxed">
           <p>{s.summary}</p>
-          {based && <p className="text-xs text-muted">Based on {based.checkins} check-in{based.checkins === 1 ? "" : "s"} and {based.resolved} resolved blocker{based.resolved === 1 ? "" : "s"}.</p>}
+          {based && <p className="text-xs text-muted">Based on {based.checkins} check-in{based.checkins === 1 ? "" : "s"}, {based.recordings} recording{based.recordings === 1 ? "" : "s"} and {based.resolved} resolved blocker{based.resolved === 1 ? "" : "s"}.</p>}
           <p className="text-muted">{s.progress}</p>
           {s.risks.length > 0 && (
             <div className="rounded-2xl bg-warn-soft p-3.5">

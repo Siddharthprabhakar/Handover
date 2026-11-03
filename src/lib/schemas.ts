@@ -55,5 +55,11 @@ export const ProjectSummary = z.object({
   next_steps: z.array(z.string()),
 });
 
-export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary };
+export const InterviewAnalysis = z.object({
+  summary: z.string(),
+  themes: z.array(z.object({ title: z.string(), description: z.string(), quotes: z.array(z.string()) })),
+  follow_ups: z.array(z.string()),
+});
+
+export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary, interview: InterviewAnalysis };
 export type JobName = keyof typeof schemas;

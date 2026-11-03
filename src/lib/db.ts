@@ -16,6 +16,9 @@ const freshFetch: typeof fetch = (input, init) => fetch(input, { ...init, signal
 
 const sb: SupabaseClient | null = usingSupabase ? createClient(url!, key!, { auth: { persistSession: false }, global: { fetch: freshFetch } }) : null;
 
+/** Private audio bucket; null in the in-memory demo, which cannot store files. */
+export const recordings = sb ? sb.storage.from("recordings") : null;
+
 // shortcut: without Supabase env vars the app runs on in-memory demo data that resets on restart.
 const g = globalThis as { __handoverMem?: Tables };
 const mem: Tables = (g.__handoverMem ??= structuredClone(seed));

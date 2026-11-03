@@ -29,9 +29,15 @@ export type Handoff = {
   answers: unknown; brief: unknown; token: string; status: string;
 };
 export type DigestRow = { id: string; lab_id: string; week: string; text: string; shared_at: string | null };
+export type Turn = { speaker: string | null; text: string };
+export type FileRow = {
+  id: string; lab_id: string; kind: "voice_checkin" | "interview" | "upload"; person_id: string | null; project_id: string | null; checkin_id: string | null;
+  title: string; storage_path: string; duration_sec: number | null; size_bytes: number | null; consent: boolean; participant_label: string | null;
+  transcript: Turn[] | null; transcript_text: string | null; analysis: unknown; status: "uploaded" | "transcribing" | "ready" | "failed"; error: string | null; created_at: string;
+};
 export type Tables = {
   labs: Lab[]; people: Person[]; projects: Project[]; project_members: ProjectMember[]; tasks: Task[];
-  checkins: Checkin[]; blockers: Blocker[]; overtime: Overtime[]; handoffs: Handoff[]; digests: DigestRow[];
+  checkins: Checkin[]; blockers: Blocker[]; overtime: Overtime[]; handoffs: Handoff[]; digests: DigestRow[]; files: FileRow[];
 };
 
 const uid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -118,6 +124,7 @@ export const seed: Tables = {
   overtime: [{ id: uid(401), person_id: P.chloe, reason: "Conference deadline", starts: "2026-11-02", ends: "2026-11-08" }],
   handoffs: [],
   digests: [],
+  files: [],
 };
 
 // Seeded check-ins get the same rule-based parse so the demo data has structure from the start.
