@@ -1,7 +1,11 @@
 import { heuristicParse } from "./checkin";
 
 // Demo data. All names are fake. Used only when Supabase is not configured (in-memory demo mode).
-export type Lab = { id: string; name: string; created_at: string };
+export type Lab = { id: string; name: string; created_at: string; calendar_token?: string };
+export type Meeting = {
+  id: string; lab_id: string; project_id: string | null; title: string; weekday: number | null; on_date: string | null;
+  starts: string; duration_min: number; place: string | null; created_at: string;
+};
 export type Person = {
   id: string; lab_id: string; auth_user_id: string | null; invited_at: string | null; name: string; email: string; role: "professor" | "ra";
   weekly_hours: number; max_tasks: number; status: "active" | "leaving"; leaving_on: string | null; program?: string | null;
@@ -40,7 +44,7 @@ export type FileRow = {
 };
 export type Tables = {
   labs: Lab[]; people: Person[]; projects: Project[]; project_members: ProjectMember[]; tasks: Task[];
-  checkins: Checkin[]; blockers: Blocker[]; overtime: Overtime[]; handoffs: Handoff[]; digests: DigestRow[]; files: FileRow[];
+  checkins: Checkin[]; blockers: Blocker[]; overtime: Overtime[]; handoffs: Handoff[]; digests: DigestRow[]; files: FileRow[]; meetings: Meeting[];
 };
 
 const uid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -128,6 +132,7 @@ export const seed: Tables = {
   handoffs: [],
   digests: [],
   files: [],
+  meetings: [],
 };
 
 // Seeded check-ins get the same rule-based parse so the demo data has structure from the start.

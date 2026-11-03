@@ -1,6 +1,11 @@
 import { requireProfessor } from "@/lib/session";
 import { Avatar, Btn, Card, Chip, PageHeader } from "@/components/ui";
 import { LoadDemo } from "@/components/LoadDemo";
+import { MeetingsCard } from "@/components/MeetingsCard";
+import { list } from "@/lib/db";
+import { TODAY } from "@/lib/demo";
+import { appUrl } from "@/lib/email";
+import { occurrencesInWeek } from "@/lib/meetings";
 import { ReminderButton } from "@/components/ReminderButton";
 import { Suspense } from "react";
 import { DigestSkeleton, MuseDigestCard } from "@/components/DigestSlot";
@@ -36,9 +41,10 @@ export default async function LabOverview() {
   const digest = ruleDigest(lab);
   const byName = new Map(lab.people.map((p) => [p.name, p]));
   const submitted = lab.weekCheckins.filter((c) => c.submitted_at).length;
-  const flagged = new Set([...digest.stuck.map((s) => s.person), ...digest.missing, ...digest.needs_tasks]);
-  const onTrackPct = Math.round(((lab.ras.length - flagged.size) / lab.ras.length) * 100);
-  const dots = Math.round((onTrackPct / 100) * 32);
+  // meetings need the v8 database update; until it is run the card just shows empty
+  const [meetings, labRows] = await Promise.all([list("meetings", { col: "lab_id", eq: session.labId }).catch(() => []), list("labs", { col: "id", eq: session.labId }).catch(() => [])]);
+  const token = labRows[0]?.calendar_token;
+  const projectName = (id: string | null) => lab.projects.find((x) => x.id === id)?.name ?? null;
   const activeOvertime = lab.overtime.filter((o) => o.starts <= WEEK && o.ends >= WEEK);
   const saved = lab.digests.find((d) => d.week === WEEK);
   const attention = digest.stuck.length + digest.missing.length + digest.needs_tasks.length;
@@ -67,15 +73,7 @@ export default async function LabOverview() {
             {digest.needs_tasks.map((n) => <Chip key={n} tone="ok">{n.split(" ")[0]}</Chip>)}
           </div>
         </Card>
-        <Card className="flex flex-wrap items-center gap-3.5">
-          <div>
-            <span className="text-[13px] text-muted">RAs on track</span>
-            <div className="mt-1.5 font-heading text-[46px] font-medium leading-none">{onTrackPct}%</div>
-          </div>
-          <div className="grid shrink-0 grid-cols-[repeat(8,12px)] gap-[5px]">
-            {Array.from({ length: 32 }, (_, i) => <i key={i} className={`h-3 w-3 rounded-full ${i < dots ? "bg-dark" : "bg-crimson"}`} />)}
-          </div>
-        </Card>
+        <MeetingsCard weekStart={WEEK} today={TODAY} items={occurrencesInWeek(meetings, WEEK, projectName)} meetings={meetings} projects={lab.projects.map((x) => ({ id: x.id, name: x.name }))} feedUrl={token ? `${appUrl()}/api/calendar/${token}.ics` : null} />
         <Card dark className="flex flex-col gap-2 rounded-[28px]">
           <span className="text-[13px]">Overtime active</span>
           <div className="font-heading text-[52px] font-medium leading-none">{activeOvertime.length}</div>
@@ -86,7 +84,7 @@ export default async function LabOverview() {
       </div>
 
       <div className="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 xl:max-h-[calc(100vh-24rem)] xl:min-h-[320px] xl:overflow-y-auto xl:pr-1">
           <Suspense fallback={<DigestSkeleton />}><MuseDigestCard lab={lab} saved={saved} /></Suspense>
           <Card>
             <h2 className="mb-2 font-heading text-lg font-bold">Common support requests</h2>
@@ -101,7 +99,7 @@ export default async function LabOverview() {
             <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson">{attention}</span>
           </div>
           {/* long lists scroll inside the column so the rest of the page keeps its shape */}
-          <div className="flex flex-col gap-3 overflow-y-auto pr-1 lg:max-h-[calc(100vh-24rem)] lg:min-h-[320px]">
+          <div className="flex flex-col gap-3 overflow-y-auto pr-1 xl:max-h-[calc(100vh-27rem)] xl:min-h-[280px]">
           {digest.stuck.map((s) => {
             const p = byName.get(s.person);
             return (
@@ -159,7 +157,7 @@ export default async function LabOverview() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 xl:max-h-[calc(100vh-24rem)] xl:min-h-[320px] xl:overflow-y-auto xl:pr-1">
           <Card dark className="rounded-[28px]">
             <h2 className="mb-2.5 font-heading text-xl font-bold">Workload this week</h2>
             {lab.ras.map((p) => {
