@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { addDays } from "@/lib/limits";
-import { DAYS, fmtTime, type Occurrence } from "@/lib/meetings";
+import { DAYS, endTime, fmtTime, type Occurrence } from "@/lib/meetings";
 import type { Meeting } from "@/lib/seed";
 import { Card } from "./ui";
 
@@ -16,7 +16,7 @@ type Props = { weekStart: string; today: string; items: Occurrence[]; meetings: 
 export function MeetingsCard({ weekStart, today, items, meetings, projects, feedUrl }: Props) {
   const [open, setOpen] = useState(false);
   const week = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const shown = items.slice(0, 3);
+  const days = [...new Set(items.map((x) => x.date))];
   return (
     <Card className="flex flex-col gap-2.5">
       <div className="flex items-center gap-2">
@@ -36,18 +36,27 @@ export function MeetingsCard({ weekStart, today, items, meetings, projects, feed
           );
         })}
       </div>
-      {shown.length === 0 ? (
+      {days.length === 0 ? (
         <p className="text-[13px] text-muted">No meetings this week. Use Manage to add one.</p>
       ) : (
-        <ul className="flex flex-col gap-1.5">
-          {shown.map((m) => (
-            <li key={`${m.id}${m.date}`} className="text-[13px] leading-snug">
-              <b className="font-semibold">{dayName(m.date)} {fmtTime(m.time)}</b> · {m.title}
-              <span className="block truncate text-xs text-muted">{[m.project, m.place].filter(Boolean).join(" · ")}</span>
-            </li>
+        <div className="flex flex-col divide-y divide-line overflow-auto">
+          {days.map((d) => (
+            <div key={d} className="flex gap-3 py-2 first:pt-0">
+              <div className={`w-11 shrink-0 rounded-lg py-1 text-center ${d === today ? "bg-crimson text-white" : "bg-bg"}`}>
+                <div className={`text-[10px] font-semibold ${d === today ? "" : "text-muted"}`}>{dayName(d)}</div>
+                <div className="text-sm font-semibold leading-tight">{Number(d.slice(8))}</div>
+              </div>
+              <ul className="flex min-w-0 flex-1 flex-col gap-1.5">
+                {items.filter((m) => m.date === d).map((m) => (
+                  <li key={`${m.id}${m.date}`} className="text-[13px] leading-snug">
+                    <div className="flex items-baseline gap-2"><b className="min-w-0 flex-1 truncate font-semibold">{m.title}</b><span className="shrink-0 text-xs text-muted">{fmtTime(m.time)} to {fmtTime(endTime(m.time, m.minutes))}</span></div>
+                    <span className="block truncate text-xs text-muted">{[m.project, m.place].filter(Boolean).join(" · ")}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-          {items.length > shown.length && <li className="text-xs text-muted">+{items.length - shown.length} more</li>}
-        </ul>
+        </div>
       )}
       {open && <Manage meetings={meetings} projects={projects} feedUrl={feedUrl} onClose={() => setOpen(false)} />}
     </Card>

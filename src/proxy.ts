@@ -4,8 +4,8 @@ import { isJudge } from "./lib/judge";
 
 // Optimistic gate: refreshes the session cookies and sends people to the right screen. Every page and
 // API route still checks the session itself (src/lib/session.ts); this is not the only protection.
-const OPEN = ["/login", "/signup", "/api/judge", "/checkin/", "/handoff/", "/api/checkin", "/api/handoff", "/api/files/", "/api/calendar/", "/api/cron/", "/logout"];
-const TOKEN_FLOWS = ["/api/judge", "/checkin/", "/handoff/", "/api/checkin", "/api/handoff", "/api/files/", "/api/calendar/", "/api/cron/", "/logout"];
+const OPEN = ["/login", "/signup", "/checkin/", "/handoff/", "/api/checkin", "/api/handoff", "/api/files/", "/api/calendar/", "/api/cron/", "/logout"];
+const TOKEN_FLOWS = ["/checkin/", "/handoff/", "/api/checkin", "/api/handoff", "/api/files/", "/api/calendar/", "/api/cron/", "/logout"];
 const starts = (path: string, list: string[]) => list.some((p) => (p.endsWith("/") ? path.startsWith(p) : path === p || path.startsWith(`${p}/`)));
 
 export async function proxy(request: NextRequest) {

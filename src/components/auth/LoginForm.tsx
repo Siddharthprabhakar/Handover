@@ -6,14 +6,13 @@ import { useState } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/browser";
 import { AuthShell, btnCls, inputCls } from "./AuthShell";
 
-export function LoginForm({ judge = false }: { judge?: boolean }) {
+export function LoginForm() {
   const router = useRouter();
   const next = useSearchParams().get("next");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [opening, setOpening] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,13 +40,6 @@ export function LoginForm({ judge = false }: { judge?: boolean }) {
         {error && <p className="text-[13px] text-crimson">{error}</p>}
         <button className={btnCls} disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
       </form>
-      {judge && (
-        <form method="post" action="/api/judge" onSubmit={() => setOpening(true)} className="flex flex-col gap-1.5 rounded-2xl bg-crimson-soft p-4">
-          <b className="text-sm">Judges and visitors</b>
-          <span className="text-[13px] text-muted">Explore a lab that is already filled in. No sign-up, no code. Email sending and project deletion are switched off.</span>
-          <button className="mt-1 w-full rounded-full border border-crimson px-[18px] py-3 text-sm font-semibold text-crimson disabled:opacity-50" disabled={opening}>{opening ? "Opening the demo lab… this takes a few seconds" : "Explore the demo"}</button>
-        </form>
-      )}
       <p className="text-center text-[13px] text-muted">New here? <Link href="/signup?fresh=1" className="font-semibold text-crimson">Create a lab</Link></p>
     </AuthShell>
   );

@@ -23,7 +23,7 @@ export function occurrencesInWeek(meetings: Meeting[], weekStart: string, projec
 
 const esc = (s: string) => s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n/g, "\\n");
 const stamp = (date: string, time: string) => `${date.replace(/-/g, "")}T${time.replace(":", "")}00`;
-const endTime = (time: string, minutes: number) => {
+export const endTime = (time: string, minutes: number) => {
   const total = Number(time.slice(0, 2)) * 60 + Number(time.slice(3)) + minutes;
   const t = total % 1440;
   return `${String(Math.floor(t / 60)).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`;

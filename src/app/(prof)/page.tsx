@@ -9,7 +9,8 @@ import { list } from "@/lib/db";
 import { TODAY } from "@/lib/demo";
 import { appUrl } from "@/lib/email";
 import { loadsOf } from "@/lib/loads";
-import { occurrencesInWeek } from "@/lib/meetings";
+import { addDays } from "@/lib/limits";
+import { DAYS, occurrencesInWeek } from "@/lib/meetings";
 import { ReminderButton } from "@/components/ReminderButton";
 import { Suspense } from "react";
 import { DigestSkeleton, MuseDigestCard } from "@/components/DigestSlot";
@@ -52,6 +53,9 @@ export default async function LabOverview() {
   const token = labRows[0]?.calendar_token;
   const projectName = (id: string | null) => lab.projects.find((x) => x.id === id)?.name ?? null;
   const activeOvertime = lab.overtime.filter((o) => o.starts <= WEEK && o.ends >= WEEK);
+  const dayOf = (iso: string) => DAYS[(new Date(`${iso}T00:00:00Z`).getUTCDay() + 6) % 7];
+  const dueThisWeek = lab.tasks.filter((t) => t.status === "open" && t.due && t.due <= addDays(WEEK, 6)).sort((a, b) => a.due!.localeCompare(b.due!));
+  const overdue = dueThisWeek.filter((t) => t.due! < TODAY).length;
   const saved = lab.digests.find((d) => d.week === WEEK);
   const loads = loadsOf(lab);
   const assignProjects = lab.projects.map((x) => ({ id: x.id, name: x.name, phases: x.phase_template }));
@@ -81,6 +85,19 @@ export default async function LabOverview() {
           </div>
           <div className="mt-0.5 flex flex-wrap gap-1.5">
             {activeOvertime.length === 0 ? <Chip tone="light">No one on overtime</Chip> : activeOvertime.map((o) => <Chip key={o.id} tone="warn">{lab.byId.get(o.person_id)?.name.split(" ")[0]} · overtime until {fmtDate(o.ends)}</Chip>)}
+          </div>
+          {digest.missing.length > 0 && <div className="flex flex-wrap items-center gap-1.5"><span className="text-xs text-muted">Not in yet</span>{digest.missing.map((n) => <Chip key={n} tone="crimson">{n.split(" ")[0]}</Chip>)}</div>}
+          <div className="mt-2 flex flex-col gap-1.5 border-t border-line pt-3">
+            <div className="flex items-center gap-2"><span className="text-[13px] text-muted">Tasks due this week</span><span className="flex-1" />{overdue > 0 ? <Chip tone="crimson">{overdue} overdue</Chip> : <span className="text-xs text-muted">{dueThisWeek.length}</span>}</div>
+            {dueThisWeek.length === 0 && <p className="text-[13px] text-muted">Nothing due. A calm week.</p>}
+            {dueThisWeek.slice(0, 4).map((t) => (
+              <div key={t.id} className="flex items-baseline gap-2 text-[13px] leading-snug">
+                <b className="w-9 shrink-0 font-semibold">{dayOf(t.due!)}</b>
+                <span className="min-w-0 flex-1 truncate">{t.title}</span>
+                <span className="shrink-0 text-xs text-muted">{lab.byId.get(t.assignee ?? "")?.name.split(" ")[0] ?? "Unassigned"}</span>
+              </div>
+            ))}
+            {dueThisWeek.length > 4 && <span className="text-xs text-muted">+{dueThisWeek.length - 4} more</span>}
           </div>
         </Card>
 
