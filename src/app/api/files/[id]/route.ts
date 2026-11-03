@@ -11,6 +11,7 @@ const Patch = z.object({
   title: z.string().trim().min(1).max(120).optional(),
   projectId: z.string().nullable().optional(),
   participantLabel: z.string().trim().max(60).optional(),
+  suggestion: z.null().optional(), // dismiss or accept: clears Muse's suggestion
   turns: z.array(z.object({ speaker: z.string().max(60).nullable(), text: z.string().max(20000) })).max(2000).optional(),
 });
 
@@ -32,6 +33,7 @@ export async function PATCH(req: Request, ctx: Ctx) {
     ...(b.title ? { title: b.title } : {}),
     ...(b.projectId !== undefined ? { project_id: b.projectId } : {}),
     ...(b.participantLabel !== undefined ? { participant_label: b.participantLabel || null } : {}),
+    ...(b.suggestion === null ? { suggestion: null } : {}),
     ...(b.turns ? { transcript: b.turns, transcript_text: toText(b.turns), analysis: null } : {}), // an edited transcript makes the old analysis stale
   });
   return Response.json({ ok: true });

@@ -1,6 +1,7 @@
 import { after } from "next/server";
 import { z } from "zod";
-import { recordings, update } from "@/lib/db";
+import { list, recordings, update } from "@/lib/db";
+import { suggestFiling } from "@/lib/filing";
 import { findFile, resolveAccess } from "@/lib/files";
 import { MAX_SEC, toText, transcribe } from "@/lib/transcribe";
 
@@ -27,7 +28,19 @@ export async function POST(req: Request) {
       // the browser's claimed size is not trusted: a 16 kHz mono WAV is 32,000 bytes a second
       if (data.size > MAX_SEC * 32_000 + 1024) throw new Error(`The audio is longer than ${Math.round(MAX_SEC / 60)} minutes`);
       const turns = await transcribe(await data.arrayBuffer(), file.kind !== "voice_checkin");
-      await update("files", file.id, { status: "ready", transcript: turns, transcript_text: toText(turns) });
+      const text = toText(turns);
+      await update("files", file.id, { status: "ready", transcript: turns, transcript_text: text });
+      // not filed under a study yet: let Muse suggest one. It never moves anything, and a failure here must not undo the transcript.
+      if (!file.project_id) {
+        try {
+          const projects = (await list("projects", { col: "lab_id", eq: file.lab_id })).map((p) => ({ id: p.id, name: p.name, goal: p.goal, questions: p.research_questions ?? [] }));
+          const mine = file.person_id ? (await list("project_members", { col: "person_id", eq: file.person_id })).map((m) => m.project_id) : [];
+          const suggestion = await suggestFiling({ ...file, transcript_text: text }, projects, mine);
+          if (suggestion) await update("files", file.id, { suggestion });
+        } catch (e) {
+          console.error("Filing suggestion failed:", e instanceof Error ? e.message : e);
+        }
+      }
     } catch (e) {
       console.error("Transcription failed:", e instanceof Error ? e.message : e);
       await update("files", file.id, { status: "failed", error: e instanceof Error ? e.message.slice(0, 300) : "Transcription failed" });

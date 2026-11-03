@@ -3,6 +3,7 @@ import { heuristicParse } from "./checkin";
 // Demo data. All names are fake. Used only when Supabase is not configured (in-memory demo mode).
 export type Lab = { id: string; name: string; created_at: string; calendar_token?: string };
 export type CalendarLink = { id: string; lab_id: string; person_id: string; label: string; url: string; created_at: string };
+export type Participant = { id: string; lab_id: string; project_id: string; label: string; status: "signed_up" | "scheduled" | "withdrew"; created_at: string };
 export type Meeting = {
   id: string; lab_id: string; project_id: string | null; title: string; weekday: number | null; on_date: string | null;
   starts: string; duration_min: number; place: string | null; created_at: string;
@@ -42,11 +43,11 @@ export type Turn = { speaker: string | null; text: string };
 export type FileRow = {
   id: string; lab_id: string; kind: "voice_checkin" | "interview" | "upload"; person_id: string | null; project_id: string | null; checkin_id: string | null;
   title: string; storage_path: string; duration_sec: number | null; size_bytes: number | null; consent: boolean; participant_label: string | null;
-  transcript: Turn[] | null; transcript_text: string | null; analysis: unknown; status: "uploaded" | "transcribing" | "ready" | "failed"; error: string | null; created_at: string;
+  transcript: Turn[] | null; transcript_text: string | null; suggestion?: { project_id: string | null; title: string; reason: string } | null; analysis: unknown; status: "uploaded" | "transcribing" | "ready" | "failed"; error: string | null; created_at: string;
 };
 export type Tables = {
   labs: Lab[]; people: Person[]; projects: Project[]; project_members: ProjectMember[]; tasks: Task[];
-  checkins: Checkin[]; blockers: Blocker[]; overtime: Overtime[]; handoffs: Handoff[]; digests: DigestRow[]; files: FileRow[]; meetings: Meeting[]; calendar_links: CalendarLink[];
+  checkins: Checkin[]; blockers: Blocker[]; overtime: Overtime[]; handoffs: Handoff[]; digests: DigestRow[]; files: FileRow[]; meetings: Meeting[]; calendar_links: CalendarLink[]; participants: Participant[];
 };
 
 const uid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -136,6 +137,7 @@ export const seed: Tables = {
   files: [],
   meetings: [],
   calendar_links: [],
+  participants: [],
 };
 
 // Seeded check-ins get the same rule-based parse so the demo data has structure from the start.

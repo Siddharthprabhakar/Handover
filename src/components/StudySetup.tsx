@@ -50,7 +50,7 @@ export function StudySetup(p: Props) {
   const progress =
     target > 0 ? (
       <div>
-        <div className="mb-1.5 flex justify-between text-[13px]"><b>{p.recruited} of {target} participants recorded</b><span className="text-muted">{p.transcribed} transcribed</span></div>
+        <div className="mb-1.5 flex justify-between text-[13px]"><b>{p.recruited} of {target} signed up</b><span className="text-muted">{p.transcribed} transcribed</span></div>
         <span className="block h-2 overflow-hidden rounded-full bg-line"><i className="block h-full rounded-full bg-crimson" style={{ width: `${Math.min(100, (p.recruited / target) * 100)}%` }} /></span>
       </div>
     ) : (

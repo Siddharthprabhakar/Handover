@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { ProjectPeople } from "@/components/ProjectPeople";
 import { ProjectSummary } from "@/components/ProjectSummary";
 import { StudySetup } from "@/components/StudySetup";
+import { ParticipantsCard } from "@/components/ParticipantsCard";
+import { participantStats, rosterRows } from "@/lib/participants";
 import { EvidenceCard } from "@/components/EvidenceCard";
 import { DeleteProject } from "@/components/DeleteProject";
 import { PhaseEditor } from "@/components/PhaseEditor";
@@ -24,6 +26,8 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
 
   const sp = await searchParams;
   const selected = Math.min(project.phase_template.length, Math.max(1, Number(sp.phase) || project.current_phase));
+  // the sign-up list needs the v11 database update; until it is run the roster is just built from the recordings
+  const roster = await list("participants", { col: "project_id", eq: id }).catch(() => []);
   const interviews = (await list("files", { col: "lab_id", eq: session.labId })).filter((f) => f.project_id === id && f.kind === "interview");
   const tasks = lab.tasks.filter((t) => t.project_id === id);
   const members = lab.members.filter((m) => m.project_id === id).map((m) => lab.byId.get(m.person_id)!);
@@ -51,11 +55,12 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
     ...(project.phase_log ?? []).map((l) => ({ at: l.at, text: `Moved to ${project.phase_template[l.to - 1]} by ${l.by}`, tag: "" })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6);
 
-  const labels = (rows: typeof interviews) => new Set(rows.map((f) => f.participant_label?.trim().toLowerCase()).filter(Boolean)).size;
   // the first phase with participants in it (Recruit, or Data for a thesis): an open IRB is flagged before moving into it
   const gatePhase = project.phase_template.findIndex((n) => /^(recruit|data)/i.test(n)) + 1;
   const irbCleared = project.irb_status === "approved" || project.irb_status === "exempt";
   const gate = gatePhase > 0 && !irbCleared ? { phase: gatePhase, text: project.irb_status === "pending" ? "The IRB decision is still pending." : "No IRB approval is recorded for this study." } : null;
+
+  const stats = participantStats(roster, interviews);
 
   // moving on is a person's call; the task list only suggests it
   const nowName = project.phase_template[project.current_phase - 1];
@@ -130,7 +135,9 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
         </Card>
       )}
 
-      <StudySetup projectId={id} irbStatus={project.irb_status ?? null} irbRef={project.irb_ref ?? null} irbDate={project.irb_date ?? null} target={project.participant_target ?? null} questions={project.research_questions ?? []} recruited={labels(interviews)} transcribed={labels(interviews.filter((f) => f.status === "ready"))} />
+      <StudySetup projectId={id} irbStatus={project.irb_status ?? null} irbRef={project.irb_ref ?? null} irbDate={project.irb_date ?? null} target={project.participant_target ?? null} questions={project.research_questions ?? []} recruited={stats.signedUp} transcribed={stats.transcribed} />
+
+      <ParticipantsCard projectId={id} target={project.participant_target ?? null} stats={stats} rows={rosterRows(roster, interviews)} />
 
       <ProjectPeople projectId={id} members={members.map((m) => ({ id: m.id, name: m.name }))} others={lab.ras.filter((r) => !members.some((m) => m.id === r.id)).map((r) => ({ id: r.id, name: r.name }))} />
 

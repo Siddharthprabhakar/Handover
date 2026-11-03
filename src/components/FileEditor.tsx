@@ -52,6 +52,16 @@ export function FileEditor({ file, projects, asr }: { file: FileRow; projects: {
 
   return (
     <>
+      {file.suggestion?.project_id && !file.project_id && projects.some((p) => p.id === file.suggestion!.project_id) && (
+        <Card className="flex flex-wrap items-center gap-3 !bg-crimson-soft">
+          <div className="min-w-0 flex-1 text-sm">
+            <b>Muse suggests filing this under {projects.find((p) => p.id === file.suggestion!.project_id)!.name}</b>
+            <span className="block text-muted">{file.suggestion.title !== file.title ? `Rename it “${file.suggestion.title}”. ` : ""}{file.suggestion.reason}</span>
+          </div>
+          <button type="button" disabled={!!busy} onClick={() => patch({ projectId: file.suggestion!.project_id, title: file.suggestion!.title, suggestion: null }, "Filing…", "Filed")} className="rounded-full bg-crimson px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50">Accept</button>
+          <button type="button" disabled={!!busy} onClick={() => patch({ suggestion: null }, "Dismissing…", "")} className={ghost}>Dismiss</button>
+        </Card>
+      )}
       <Card className="flex flex-col gap-3">
         {!demo && <audio controls preload="none" src={`/api/files/${file.id}/audio`} className="w-full" />}
         <div className="grid gap-3 sm:grid-cols-3">

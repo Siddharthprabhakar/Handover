@@ -77,5 +77,11 @@ export const Synthesis = z.object({
   gaps: z.array(z.string()),
 });
 
-export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary, interview: InterviewAnalysis, projectplan: ProjectImport, synthesis: Synthesis };
+export const Filing = z.object({
+  project: z.string().nullable(), // exact project name, or null when none fits
+  title: z.string(),
+  reason: z.string(),
+});
+
+export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary, interview: InterviewAnalysis, projectplan: ProjectImport, synthesis: Synthesis, filing: Filing };
 export type JobName = keyof typeof schemas;

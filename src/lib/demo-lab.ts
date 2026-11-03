@@ -128,5 +128,11 @@ export async function loadDemoLab(labId: string): Promise<boolean> {
       transcript: i.turns, transcript_text: toText(i.turns), analysis: null, status: "ready", error: null, created_at: now,
     });
   }
+  // four more people have signed up but not been interviewed yet (the sign-up list needs the v11 database update, so skip quietly without it)
+  try {
+    for (const [label, status] of [["P4", "signed_up"], ["P5", "scheduled"], ["P6", "signed_up"], ["P7", "signed_up"]] as const) {
+      await insert("participants", { lab_id: labId, project_id: projects.get(WAY)!.id, label, status, created_at: now });
+    }
+  } catch {}
   return true;
 }

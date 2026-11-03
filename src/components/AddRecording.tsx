@@ -9,10 +9,10 @@ import { Icon } from "./ui";
 const input = "w-full rounded-[14px] bg-bg px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-crimson/30";
 
 /** A round record button floating at the bottom right. It opens a small dialog: record an interview live or upload audio. */
-export function AddRecording({ projects, maxSec }: { projects: { id: string; name: string }[]; maxSec: number }) {
+export function AddRecording({ projects, maxSec, defaultProjectId }: { projects: { id: string; name: string }[]; maxSec: number; defaultProjectId?: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [f, setF] = useState({ title: "", projectId: "", label: "", consent: false });
+  const [f, setF] = useState({ title: "", projectId: defaultProjectId ?? "", label: "", consent: false });
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
 
@@ -21,7 +21,7 @@ export function AddRecording({ projects, maxSec }: { projects: { id: string; nam
     try {
       setBusy("Uploading…");
       await sendRecording(wav, seconds, { kind: "interview", title: f.title || `Interview ${f.label}`, projectId: f.projectId || null, participantLabel: f.label, consent: true });
-      setF({ title: "", projectId: "", label: "", consent: false });
+      setF({ title: "", projectId: defaultProjectId ?? "", label: "", consent: false });
       setOpen(false);
       router.refresh();
     } catch (e) {

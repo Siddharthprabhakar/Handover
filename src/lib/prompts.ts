@@ -106,3 +106,16 @@ Rules:
 - Write a coverage entry for every research question. If there are no research questions, return an empty coverage list.
 - Use only the transcripts. Do not add outside knowledge.`;
 }
+
+export function filingPrompt(file: { kind: string; title: string; text: string }, projects: { name: string; goal: string | null; questions: string[] }[]) {
+  return `A research lab has a new ${file.kind === "voice_checkin" ? "voice check-in" : "interview recording"} titled "${file.title}". Decide which study it belongs to.
+
+Studies:
+${projects.map((p) => `- "${p.name}"${p.goal ? `: ${p.goal}` : ""}${p.questions.length ? ` Research questions: ${p.questions.join(" / ")}` : ""}`).join("\n")}
+
+Start of the transcript:
+"""${file.text}"""
+
+Return JSON: {"project": string|null (the exact name of one study above, or null if none clearly fits),"title": string (a short descriptive title of at most 8 words, no real names),"reason": string (one sentence on why)}.
+Pick a study only if the transcript is clearly about it. Use only the transcript. Do not invent anything.`;
+}
