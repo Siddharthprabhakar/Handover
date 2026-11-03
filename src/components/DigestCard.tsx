@@ -10,6 +10,7 @@ export function DigestCard({ initialText, initialShared }: { initialText: string
   const [shared, setShared] = useState(initialShared);
   const [busy, setBusy] = useState(false);
   const [more, setMore] = useState(false);
+  const [overflows, setOverflows] = useState(false); // only a text longer than the clamp gets a Read more button
 
   async function save(share: boolean) {
     setBusy(true);
@@ -33,8 +34,8 @@ export function DigestCard({ initialText, initialShared }: { initialText: string
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={6} className="w-full resize-none rounded-[14px] bg-white/15 px-3.5 py-3 text-sm leading-relaxed text-white outline-none" />
       ) : (
         <div>
-          <p className={`leading-relaxed ${more ? "" : "line-clamp-6"}`}>{text}</p>
-          {text.length > 220 && <button type="button" onClick={() => setMore(!more)} className="mt-1.5 text-[13px] font-semibold text-white/85 underline-offset-2 hover:underline">{more ? "Show less" : "Read more"}</button>}
+          <p ref={(el) => { if (el && !more) setOverflows(el.scrollHeight > el.clientHeight + 1); }} className={`leading-relaxed ${more ? "" : "line-clamp-6"}`}>{text}</p>
+          {(overflows || more) && <button type="button" onClick={() => setMore(!more)} className="mt-1.5 text-[13px] font-semibold text-white/85 underline-offset-2 hover:underline">{more ? "Show less" : "Read more"}</button>}
         </div>
       )}
       <div className="flex gap-2.5">

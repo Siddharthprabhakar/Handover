@@ -129,8 +129,8 @@ export default async function LabOverview() {
         <MeetingsCard weekStart={WEEK} today={TODAY} items={occurrencesInWeek(meetings, WEEK, projectName)} meetings={meetings} projects={lab.projects.map((x) => ({ id: x.id, name: x.name }))} feedUrl={token ? `${appUrl()}/api/calendar/${token}.ics` : null} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2 xl:flex-1 xl:grid-cols-3">
-        <div className="flex flex-col [&>*]:flex-1">
+      <div className="grid gap-4 lg:grid-cols-2 xl:flex-1 xl:grid-cols-3 xl:items-start">
+        <div className="flex flex-col">
           <Suspense fallback={<DigestSkeleton />}><MuseDigestCard lab={lab} saved={saved} /></Suspense>
         </div>
 
@@ -141,7 +141,7 @@ export default async function LabOverview() {
             <span className="text-xs text-muted">Muse read the check-ins</span>
           </div>
           <div className="flex flex-col gap-3">
-            {attention.slice(0, 3).map((e) => {
+            {attention.slice(0, 2).map((e) => {
               const p = byName.get(e.name);
               const c = p && lab.weekCheckins.find((x) => x.person_id === p.id);
               const l = p ? lab.load(p.id) : null;
@@ -170,7 +170,7 @@ export default async function LabOverview() {
                 </Card>
               );
             })}
-            {attention.length > 3 && <Link href="/checkins" className="px-1 text-sm font-semibold text-crimson">Show all {attention.length} people</Link>}
+            {attention.length > 2 && <Link href="/checkins" className="px-1 text-sm font-semibold text-crimson">Show all {attention.length} people</Link>}
             {attention.length === 0 && <Card className="!rounded-[22px] !p-[18px] text-sm text-muted">Nobody needs attention this week.</Card>}
           </div>
         </div>
