@@ -24,7 +24,7 @@ export function digestPrompt(
 ${JSON.stringify(rows)}
 Open blockers: ${JSON.stringify(blockers)}
 
-Return JSON: {"summary": string (3-4 plain sentences),"on_track": string[] (names),"stuck":[{"person": name,"quote": exact words from their check-in}],"needs_tasks": string[] (names who asked for tasks),"missing": string[] (names with no check-in),"support": string[] (what people asked help with, names in brackets)}.
+Return JSON: {"summary": string (5 to 7 plain sentences, about 110 to 150 words: what moved forward in each project, who is blocked and why, what help or follow-up is needed, and one thing the professor should do first),"on_track": string[] (names),"stuck":[{"person": name,"quote": exact words from their check-in}],"needs_tasks": string[] (names who asked for tasks),"missing": string[] (names with no check-in),"support": string[] (what people asked help with, names in brackets)}.
 Use only names that appear in the data.`;
 }
 

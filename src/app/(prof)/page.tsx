@@ -129,8 +129,8 @@ export default async function LabOverview() {
         <MeetingsCard weekStart={WEEK} today={TODAY} items={occurrencesInWeek(meetings, WEEK, projectName)} meetings={meetings} projects={lab.projects.map((x) => ({ id: x.id, name: x.name }))} feedUrl={token ? `${appUrl()}/api/calendar/${token}.ics` : null} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2 xl:flex-1 xl:grid-cols-3 xl:items-start">
-        <div className="flex flex-col">
+      <div className="grid gap-4 lg:grid-cols-2 xl:flex-1 xl:grid-cols-3">
+        <div className="flex flex-col [&>*]:flex-1">
           <Suspense fallback={<DigestSkeleton />}><MuseDigestCard lab={lab} saved={saved} /></Suspense>
         </div>
 

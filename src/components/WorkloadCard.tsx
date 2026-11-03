@@ -5,7 +5,7 @@ import { Card } from "./ui";
 
 export type WorkloadRow = { id: string; name: string; tasks: number; maxTasks: number; hours: number; weeklyHours: number };
 
-const SHOWN = 5;
+const SHOWN = 4;
 
 /** Dark workload card. Shows the five most loaded people; the rest open with one click so the card never takes over the column. */
 export function WorkloadCard({ rows, overtime = [], className = "" }: { rows: WorkloadRow[]; overtime?: { id: string; name: string; until: string; reason: string }[]; className?: string }) {
