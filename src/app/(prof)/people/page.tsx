@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ActionBar, Avatar, Card, Chip, PageHeader, type Tone } from "@/components/ui";
 import { CopyLink } from "@/components/CopyLink";
 import { InvitePerson } from "@/components/InvitePerson";
+import { LoadDemo } from "@/components/LoadDemo";
 import { WEEK, fmtDate, initials, loadLab } from "@/lib/lab";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,7 @@ export default async function People() {
       </Card>
       <p className="px-2 text-[13px] leading-relaxed text-muted">Handoff is for anyone leaving the lab. Muse drafts questions from their work, you edit them, and they answer in their own time. A thank-you note goes with it.</p>
       <ActionBar hint="Invited people get an email with their personal check-in link.">
+        <LoadDemo />
         <InvitePerson />
       </ActionBar>
     </>
