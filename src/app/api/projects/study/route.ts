@@ -12,6 +12,7 @@ const Body = z.object({
   irbRef: z.string().trim().max(60).nullable(),
   irbDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
   target: z.number().int().min(1).max(500).nullable(),
+  questions: z.array(z.string().trim().min(1).max(300)).max(8).default([]),
 });
 
 // Ethics review status and how many participants the study needs. Plain records: Handover tracks them, the university's IRB office decides them.
@@ -22,7 +23,7 @@ async function handle(req: Request) {
   if (!session) return Response.json({ error: "Sign in required" }, { status: 401 });
   const b = body.data;
   if (!(await loadLab(session.labId)).projects.some((p) => p.id === b.projectId)) return Response.json({ error: "Project not found" }, { status: 404 });
-  await update("projects", b.projectId, { irb_status: b.irbStatus, irb_ref: b.irbRef || null, irb_date: b.irbDate, participant_target: b.target });
+  await update("projects", b.projectId, { irb_status: b.irbStatus, irb_ref: b.irbRef || null, irb_date: b.irbDate, participant_target: b.target, research_questions: b.questions });
   return Response.json({ ok: true });
 }
 

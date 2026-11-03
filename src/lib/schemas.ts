@@ -71,5 +71,11 @@ export const ProjectImport = z.object({
   communication: z.array(z.string()),
 });
 
-export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary, interview: InterviewAnalysis, projectplan: ProjectImport };
+export const Synthesis = z.object({
+  themes: z.array(z.object({ title: z.string(), summary: z.string(), rq: z.number().int().nullable(), evidence: z.array(z.object({ participant: z.string(), quote: z.string() })) })),
+  coverage: z.array(z.object({ rq: z.number().int(), participants: z.number().int(), note: z.string() })),
+  gaps: z.array(z.string()),
+});
+
+export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary, interview: InterviewAnalysis, projectplan: ProjectImport, synthesis: Synthesis };
 export type JobName = keyof typeof schemas;

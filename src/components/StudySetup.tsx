@@ -19,6 +19,7 @@ type Props = {
   irbRef: string | null;
   irbDate: string | null;
   target: number | null;
+  questions: string[];
   recruited: number; // distinct participants with a recording
   transcribed: number;
 };
@@ -26,8 +27,8 @@ type Props = {
 /** Ethics review and participant progress for a study with people in it. Shows a quiet summary once saved; the pencil reopens the form. */
 export function StudySetup(p: Props) {
   const router = useRouter();
-  const [editing, setEditing] = useState(!p.irbStatus && !p.target);
-  const [f, setF] = useState({ status: p.irbStatus ?? "", ref: p.irbRef ?? "", date: p.irbDate ?? "", target: p.target ? String(p.target) : "" });
+  const [editing, setEditing] = useState(!p.irbStatus && !p.target && !p.questions.length);
+  const [f, setF] = useState({ status: p.irbStatus ?? "", ref: p.irbRef ?? "", date: p.irbDate ?? "", target: p.target ? String(p.target) : "", questions: p.questions.join("\n") });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -37,7 +38,7 @@ export function StudySetup(p: Props) {
     const res = await fetch("/api/projects/study", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ projectId: p.projectId, irbStatus: f.status || null, irbRef: f.ref.trim() || null, irbDate: f.date || null, target: f.target ? Number(f.target) : null }),
+      body: JSON.stringify({ projectId: p.projectId, irbStatus: f.status || null, irbRef: f.ref.trim() || null, irbDate: f.date || null, target: f.target ? Number(f.target) : null, questions: f.questions.split("\n").map((q) => q.trim()).filter(Boolean) }),
     });
     setBusy(false);
     if (!res.ok) return setError((await res.json().catch(() => ({}))).error ?? "Could not save");
@@ -92,6 +93,9 @@ export function StudySetup(p: Props) {
             </label>
             <div className="sm:col-span-2">{progress}</div>
           </div>
+          <label className="text-xs font-semibold text-muted">Research questions (one per line, up to 8)
+            <textarea rows={3} className={`${field} mt-1.5 resize-none text-ink`} value={f.questions} onChange={(e) => setF({ ...f, questions: e.target.value })} placeholder={"How do first-year students find rooms on campus?\nWhere do they get stuck?"} />
+          </label>
           <div className="flex items-center gap-3">
             <button type="button" disabled={busy} onClick={save} className="rounded-full border border-line px-4 py-2 text-[13px] font-semibold disabled:opacity-50">{busy ? "Saving…" : "Save"}</button>
             {error && <span className="text-[13px] text-crimson">{error}</span>}
@@ -105,6 +109,12 @@ export function StudySetup(p: Props) {
             {p.irbDate && <span className="text-[13px] text-muted">decided {fmtDate(p.irbDate)}</span>}
           </div>
           {progress}
+          {p.questions.length > 0 && (
+            <div>
+              <b className="mb-1 block text-xs text-muted">Research questions</b>
+              <ol className="list-decimal space-y-0.5 pl-5 text-sm leading-relaxed">{p.questions.map((q) => <li key={q}>{q}</li>)}</ol>
+            </div>
+          )}
         </>
       )}
     </Card>

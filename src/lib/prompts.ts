@@ -89,3 +89,20 @@ Rules:
 - hours is a rough estimate for one person. owner is a name from the people list only if the document names that person, otherwise null.
 - Copy meeting times, tools and partner names exactly as written.`;
 }
+
+export function synthesisPrompt(study: { name: string; goal: string | null }, rqs: string[], interviews: { participant: string; text: string }[]) {
+  return `You are helping an HCI research lab make sense of the interviews in one study, "${study.name}"${study.goal ? `: ${study.goal}` : ""}.
+
+Research questions (numbered):
+${rqs.length ? rqs.map((q, i) => `${i + 1}. ${q}`).join("\n") : "None were written down."}
+
+Interview transcripts, one per participant:
+${interviews.map((i) => `--- ${i.participant} ---\n${i.text}`).join("\n\n")}
+
+Return JSON: {"themes":[{"title": string (a short label),"summary": string (one or two sentences),"rq": number|null (the number of the research question it speaks to, or null),"evidence":[{"participant": string (exactly as in the transcript headings),"quote": string}]}],"coverage":[{"rq": number,"participants": number,"note": string (one sentence on how well the interviews answer this question)}],"gaps": string[] (up to 4 things to ask or look for in the next interviews)}.
+Rules:
+- 3 to 7 themes that recur across participants. A theme with only one participant is allowed only if it is striking, and say so in its summary.
+- Every quote must be copied word for word from that participant's own transcript. 1 or 2 quotes per participant per theme. Never invent or tidy a quote.
+- Write a coverage entry for every research question. If there are no research questions, return an empty coverage list.
+- Use only the transcripts. Do not add outside knowledge.`;
+}

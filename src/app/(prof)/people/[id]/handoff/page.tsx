@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HandoffBrief } from "@/components/HandoffBrief";
 import { HandoffSetup } from "@/components/HandoffSetup";
+import { StudyPack } from "@/components/StudyPack";
+import { list } from "@/lib/db";
 import { Card, Chip, PageHeader } from "@/components/ui";
 import type { Brief, HQuestion } from "@/lib/handoff";
 import { loadLab } from "@/lib/lab";
@@ -22,6 +24,11 @@ export default async function Handoff({ params, searchParams }: PageProps<"/peop
   const qs = ((h?.questions as HQuestion[] | null) ?? null)?.filter((q) => q.include) ?? [];
   const answers = (h?.answers as Record<string, string> | null) ?? {};
   const answered = qs.filter((q) => (answers[q.id] ?? "").trim()).length;
+
+  // the study the leaver is on: its records go in the pack for whoever takes over
+  const study = h ? lab.projects.find((x) => x.id === h.project_id) : undefined;
+  const interviews = study ? (await list("files", { col: "lab_id", eq: session.labId })).filter((f) => f.project_id === study.id && f.kind === "interview") : [];
+  const labelCount = (rows: typeof interviews) => new Set(rows.map((f) => f.participant_label?.trim().toLowerCase()).filter(Boolean)).size;
 
   const natural = !h ? 0 : h.status === "sent" ? 1 : h.status === "draft" ? 0 : 2;
   const asked = Number((await searchParams).step);
@@ -66,6 +73,10 @@ export default async function Handoff({ params, searchParams }: PageProps<"/peop
             <Link href={`/handoff/${h.token}`} target="_blank" className="self-start rounded-full bg-crimson px-[18px] py-2.5 text-sm font-semibold text-white">Open as {first}</Link>
           </Card>
         </div>
+      )}
+
+      {step === 2 && study && (
+        <StudyPack p={{ id: study.id, name: study.name, goal: study.goal, phase: study.phase_template[study.current_phase - 1], phaseNumber: study.current_phase, phaseCount: study.phase_template.length, irbStatus: study.irb_status ?? null, irbRef: study.irb_ref ?? null, irbDate: study.irb_date ?? null, target: study.participant_target ?? null, recruited: labelCount(interviews), transcribed: labelCount(interviews.filter((f) => f.status === "ready")), questions: study.research_questions ?? [], synthesis: study.synthesis ?? null }} />
       )}
 
       {step === 2 && h && (

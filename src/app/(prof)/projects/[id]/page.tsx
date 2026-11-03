@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProjectPeople } from "@/components/ProjectPeople";
 import { ProjectSummary } from "@/components/ProjectSummary";
 import { StudySetup } from "@/components/StudySetup";
+import { EvidenceCard } from "@/components/EvidenceCard";
 import { DeleteProject } from "@/components/DeleteProject";
 import { PhaseEditor } from "@/components/PhaseEditor";
 import { PhaseControl } from "@/components/PhaseControl";
@@ -114,6 +115,8 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
         </Card>
       )}
 
+      <EvidenceCard projectId={id} questions={project.research_questions ?? []} synthesis={project.synthesis ?? null} ready={interviews.filter((x) => x.status === "ready" && x.transcript_text).length} />
+
       {project.notes && (project.notes.resources.length > 0 || project.notes.communication.length > 0) && (
         <Card className="grid gap-5 sm:grid-cols-2">
           {([["What the partner provides", project.notes.resources], ["How the team communicates", project.notes.communication]] as const).map(([title, items]) => items.length > 0 && (
@@ -125,7 +128,7 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
         </Card>
       )}
 
-      <StudySetup projectId={id} irbStatus={project.irb_status ?? null} irbRef={project.irb_ref ?? null} irbDate={project.irb_date ?? null} target={project.participant_target ?? null} recruited={labels(interviews)} transcribed={labels(interviews.filter((f) => f.status === "ready"))} />
+      <StudySetup projectId={id} irbStatus={project.irb_status ?? null} irbRef={project.irb_ref ?? null} irbDate={project.irb_date ?? null} target={project.participant_target ?? null} questions={project.research_questions ?? []} recruited={labels(interviews)} transcribed={labels(interviews.filter((f) => f.status === "ready"))} />
 
       <ProjectSummary projectId={id} />
       <ProjectPeople projectId={id} members={members.map((m) => ({ id: m.id, name: m.name }))} others={lab.ras.filter((r) => !members.some((m) => m.id === r.id)).map((r) => ({ id: r.id, name: r.name }))} />
