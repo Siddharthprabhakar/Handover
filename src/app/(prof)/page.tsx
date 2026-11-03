@@ -1,6 +1,7 @@
 import { requireProfessor } from "@/lib/session";
 import { Avatar, Btn, Card, Chip, PageHeader } from "@/components/ui";
 import { LoadDemo } from "@/components/LoadDemo";
+import { WorkloadCard } from "@/components/WorkloadCard";
 import { MeetingsCard } from "@/components/MeetingsCard";
 import { list } from "@/lib/db";
 import { TODAY } from "@/lib/demo";
@@ -84,7 +85,7 @@ export default async function LabOverview() {
       </div>
 
       <div className="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
-        <div className="flex flex-col gap-4 xl:max-h-[calc(100vh-24rem)] xl:min-h-[320px] xl:overflow-y-auto xl:pr-1">
+        <div className="flex flex-col gap-4">
           <Suspense fallback={<DigestSkeleton />}><MuseDigestCard lab={lab} saved={saved} /></Suspense>
           <Card>
             <h2 className="mb-2 font-heading text-lg font-bold">Common support requests</h2>
@@ -157,26 +158,8 @@ export default async function LabOverview() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 xl:max-h-[calc(100vh-24rem)] xl:min-h-[320px] xl:overflow-y-auto xl:pr-1">
-          <Card dark className="rounded-[28px]">
-            <h2 className="mb-2.5 font-heading text-xl font-bold">Workload this week</h2>
-            {lab.ras.map((p) => {
-              const l = lab.load(p.id);
-              const full = l.tasks >= p.max_tasks;
-              return (
-                <div key={p.id} className="py-1.5">
-                  <div className="flex justify-between text-sm font-medium">
-                    <span>{p.name.split(" ")[0]}</span>
-                    <span className="text-xs font-normal text-muted">{l.tasks} task{l.tasks === 1 ? "" : "s"} · {l.hours}/{p.weekly_hours}h</span>
-                  </div>
-                  <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/15">
-                    <div className={`h-full rounded-full ${full ? "bg-warn" : "bg-ok"}`} style={{ width: `${Math.min(100, (l.hours / p.weekly_hours) * 100)}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-            <p className="mt-2 text-xs text-muted">Hours are estimates entered by RAs. Limits: 5 tasks and 10 hours per week.</p>
-          </Card>
+        <div className="flex flex-col gap-4">
+          <WorkloadCard rows={lab.ras.map((r) => ({ id: r.id, name: r.name, ...lab.load(r.id), maxTasks: r.max_tasks, weeklyHours: r.weekly_hours }))} />
           {activeOvertime.length > 0 && (
             <Card>
               <h2 className="mb-2 font-heading text-lg font-bold">Overtime &amp; recovery</h2>
