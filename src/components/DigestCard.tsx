@@ -33,7 +33,7 @@ export function DigestCard({ initialText, initialShared }: { initialText: string
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={6} className="w-full resize-none rounded-[14px] bg-white/15 px-3.5 py-3 text-sm leading-relaxed text-white outline-none" />
       ) : (
         <div>
-          <p className={`leading-relaxed ${more ? "" : "line-clamp-4"}`}>{text}</p>
+          <p className={`leading-relaxed ${more ? "" : "line-clamp-6"}`}>{text}</p>
           {text.length > 220 && <button type="button" onClick={() => setMore(!more)} className="mt-1.5 text-[13px] font-semibold text-white/85 underline-offset-2 hover:underline">{more ? "Show less" : "Read more"}</button>}
         </div>
       )}

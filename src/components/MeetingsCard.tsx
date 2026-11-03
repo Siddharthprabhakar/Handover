@@ -39,9 +39,9 @@ export function MeetingsCard({ weekStart, today, items, meetings, projects, feed
       {days.length === 0 ? (
         <p className="text-[13px] text-muted">No meetings this week. Use Manage to add one.</p>
       ) : (
-        <div className="flex flex-col divide-y divide-line overflow-auto">
+        <div className="flex flex-col gap-3.5 border-t border-line pt-3">
           {days.map((d) => (
-            <div key={d} className="flex gap-3 py-2 first:pt-0">
+            <div key={d} className="flex gap-3">
               <div className={`w-11 shrink-0 rounded-lg py-1 text-center ${d === today ? "bg-crimson text-white" : "bg-bg"}`}>
                 <div className={`text-[10px] font-semibold ${d === today ? "" : "text-muted"}`}>{dayName(d)}</div>
                 <div className="text-sm font-semibold leading-tight">{Number(d.slice(8))}</div>

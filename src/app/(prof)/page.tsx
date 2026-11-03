@@ -70,7 +70,7 @@ export default async function LabOverview() {
   const attention = [...entries.values()].sort((a, b) => Number(b.quotes.length > 0 || b.missing) - Number(a.quotes.length > 0 || a.missing));
 
   return (
-    <div className="flex flex-col gap-4 xl:h-[calc(100vh-2rem)]">
+    <div className="flex flex-col gap-4 xl:min-h-[calc(100vh-2rem)]">
       <PageHeader title={`Good morning, ${session.name}`} sub={`Week of ${fmtDate(WEEK)} · ${submitted} of ${lab.ras.length} check-ins in`} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-[1fr_1.35fr_1fr]">
@@ -90,14 +90,14 @@ export default async function LabOverview() {
           <div className="mt-2 flex flex-col gap-1.5 border-t border-line pt-3">
             <div className="flex items-center gap-2"><span className="text-[13px] text-muted">Tasks due this week</span><span className="flex-1" />{overdue > 0 ? <Chip tone="crimson">{overdue} overdue</Chip> : <span className="text-xs text-muted">{dueThisWeek.length}</span>}</div>
             {dueThisWeek.length === 0 && <p className="text-[13px] text-muted">Nothing due. A calm week.</p>}
-            {dueThisWeek.slice(0, 4).map((t) => (
+            {dueThisWeek.slice(0, 2).map((t) => (
               <div key={t.id} className="flex items-baseline gap-2 text-[13px] leading-snug">
                 <b className="w-9 shrink-0 font-semibold">{dayOf(t.due!)}</b>
                 <span className="min-w-0 flex-1 truncate">{t.title}</span>
                 <span className="shrink-0 text-xs text-muted">{lab.byId.get(t.assignee ?? "")?.name.split(" ")[0] ?? "Unassigned"}</span>
               </div>
             ))}
-            {dueThisWeek.length > 4 && <span className="text-xs text-muted">+{dueThisWeek.length - 4} more</span>}
+            {dueThisWeek.length > 2 && <Link href="/workload" className="text-xs text-muted">+{dueThisWeek.length - 2} more</Link>}
           </div>
         </Card>
 
@@ -129,8 +129,8 @@ export default async function LabOverview() {
         <MeetingsCard weekStart={WEEK} today={TODAY} items={occurrencesInWeek(meetings, WEEK, projectName)} meetings={meetings} projects={lab.projects.map((x) => ({ id: x.id, name: x.name }))} feedUrl={token ? `${appUrl()}/api/calendar/${token}.ics` : null} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2 xl:min-h-0 xl:flex-1 xl:grid-cols-3">
-        <div className="flex flex-col gap-4 xl:min-h-0 xl:overflow-y-auto">
+      <div className="grid gap-4 lg:grid-cols-2 xl:flex-1 xl:grid-cols-3">
+        <div className="flex flex-col gap-4">
           <Suspense fallback={<DigestSkeleton />}><MuseDigestCard lab={lab} saved={saved} /></Suspense>
           <Card className="xl:flex-1">
             <h2 className="mb-2 font-heading text-lg font-bold">Common support requests</h2>
@@ -139,15 +139,14 @@ export default async function LabOverview() {
           </Card>
         </div>
 
-        <div className="flex flex-col gap-3 xl:min-h-0">
+        <div className="flex flex-col gap-3">
           <div className="flex flex-wrap items-baseline gap-2 px-1">
             <h2 className="font-heading text-xl font-bold">Needs attention</h2>
             <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson">{attention.length}</span>
             <span className="text-xs text-muted">Muse read the check-ins</span>
           </div>
-          {/* long lists scroll inside the column so the rest of the page keeps its shape */}
-          <div className="flex flex-col gap-3 pr-1 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
-            {attention.map((e) => {
+          <div className="flex flex-col gap-3">
+            {attention.slice(0, 3).map((e) => {
               const p = byName.get(e.name);
               const c = p && lab.weekCheckins.find((x) => x.person_id === p.id);
               const l = p ? lab.load(p.id) : null;
@@ -176,11 +175,12 @@ export default async function LabOverview() {
                 </Card>
               );
             })}
+            {attention.length > 3 && <Link href="/checkins" className="px-1 text-sm font-semibold text-crimson">Show all {attention.length} people</Link>}
             {attention.length === 0 && <Card className="!rounded-[22px] !p-[18px] text-sm text-muted">Nobody needs attention this week.</Card>}
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 xl:min-h-0 xl:overflow-y-auto">
+        <div className="flex flex-col gap-4">
           <WorkloadCard className="xl:flex-1" rows={lab.ras.map((r) => ({ id: r.id, name: r.name, ...lab.load(r.id), maxTasks: r.max_tasks, weeklyHours: r.weekly_hours }))} overtime={activeOvertime.map((o) => ({ id: o.id, name: lab.byId.get(o.person_id)?.name ?? "Someone", until: fmtDate(o.ends), reason: o.reason }))} />
         </div>
       </div>
