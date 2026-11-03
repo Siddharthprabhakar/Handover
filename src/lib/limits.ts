@@ -55,7 +55,7 @@ export function phaseOneCheck(plan: PlanData, loads: Load[], today = TODAY): Loa
       return { id: l.id, name: l.name, mine: mine.length, ...fits(l, mine.length, mine.reduce((s, t) => s + (Number(t.hours) || 0), 0), today) };
     })
     .filter((c) => c.mine > 0 && !c.ok)
-    .map(({ mine: _mine, ...c }) => c);
+    .map((c) => ({ id: c.id, name: c.name, ok: c.ok, kind: c.kind, detail: c.detail, tasks: c.tasks, hours: c.hours }));
 }
 
 /** Someone else with room for this task, most spare hours first. */

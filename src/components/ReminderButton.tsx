@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function ReminderButton({ label, personId, kind = "pri", disabled = false }: { label: string; personId?: string; kind?: "pri" | "out" | "small"; disabled?: boolean }) {
+export function ReminderButton({ label, personId, kind = "pri", disabled = false, endpoint = "/api/reminders", sentLabel = "Reminder sent" }: { label: string; personId?: string; kind?: "pri" | "out" | "small"; disabled?: boolean; endpoint?: string; sentLabel?: string }) {
   const router = useRouter();
   const [state, setState] = useState<"idle" | "busy" | "sent">("idle");
   const style = {
@@ -14,14 +14,14 @@ export function ReminderButton({ label, personId, kind = "pri", disabled = false
 
   async function send() {
     setState("busy");
-    const res = await fetch("/api/reminders", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ personId }) });
+    const res = await fetch(endpoint, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ personId }) });
     setState(res.ok ? "sent" : "idle");
     router.refresh();
   }
 
   return (
     <button disabled={disabled || state !== "idle"} onClick={send} className={`rounded-full font-semibold disabled:opacity-50 ${style}`}>
-      {state === "busy" ? "Sending…" : state === "sent" ? "Reminder sent" : label}
+      {state === "busy" ? "Sending…" : state === "sent" ? sentLabel : label}
     </button>
   );
 }

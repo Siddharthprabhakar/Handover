@@ -4,6 +4,8 @@ import { buildContext, heuristicBrief, heuristicQuestions, type HQuestion } from
 import { loadLab } from "@/lib/lab";
 import { museJson } from "@/lib/muse";
 import { briefPrompt, questionsPrompt } from "@/lib/prompts";
+import { appUrl, sendMail } from "@/lib/email";
+import { handoffEmail } from "@/lib/email-templates";
 
 export const dynamic = "force-dynamic";
 
@@ -47,11 +49,13 @@ export async function POST(req: Request) {
     if (!projectId) return err("This person is not on a project");
     if (existing) {
       await update("handoffs", existing.id, { questions: b.questions, thanks: b.thanks, status: "sent" });
+      await sendMail(handoffEmail({ to: person.email, name: person.name, link: `${appUrl()}/handoff/${existing.token}`, project: lab.projects.find((p) => p.id === projectId)?.name ?? "your project" }));
       return Response.json({ ok: true, token: existing.token });
     }
     const token = `hf-${crypto.randomUUID().slice(0, 8)}`;
     await insert("handoffs", { person_id: b.personId, project_id: projectId, questions: b.questions, thanks: b.thanks, answers: {}, brief: null, token, status: "sent" });
     await update("people", b.personId, { status: "leaving" });
+    await sendMail(handoffEmail({ to: person.email, name: person.name, link: `${appUrl()}/handoff/${token}`, project: lab.projects.find((p) => p.id === projectId)?.name ?? "your project" }));
     return Response.json({ ok: true, token });
   }
 

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ActionBar, Avatar, Card, Chip, PageHeader, type Tone } from "@/components/ui";
 import { ReminderButton } from "@/components/ReminderButton";
 import type { Parsed } from "@/lib/checkin";
@@ -82,6 +83,8 @@ export default async function Checkins() {
       </div>
 
       <ActionBar hint={pending.length ? "Reminder 2 goes out Wednesday 9:00 automatically." : "Everyone has checked in."}>
+        <Link href="/outbox" className="text-[13px] font-semibold text-crimson">View sent emails</Link>
+        <ReminderButton kind="out" endpoint="/api/checkin-emails" label="Send check-in emails" sentLabel="Emails sent" disabled={!pending.length} />
         <ReminderButton kind="pri" label={canRemind.length ? `Send reminder to ${canRemind.map((r) => r.p.name.split(" ")[0]).join(", ")}` : "No reminders due"} disabled={!canRemind.length} />
       </ActionBar>
     </>

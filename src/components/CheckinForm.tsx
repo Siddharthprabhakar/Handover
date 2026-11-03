@@ -8,6 +8,8 @@ type Project = { id: string; name: string; kind: "lab" | "thesis" };
 
 const field = "w-full resize-none rounded-[14px] bg-bg px-3.5 py-3 text-sm outline-none focus:ring-2 focus:ring-crimson/30";
 
+const Label = ({ children }: { children: string }) => <label className="mt-4 block text-[13px] font-semibold">{children}</label>;
+
 export function CheckinForm({ token, name, projects, planned }: { token: string; name: string; projects: Project[]; planned: string[] }) {
   const router = useRouter();
   const [main, ...others] = projects;
@@ -31,7 +33,6 @@ export function CheckinForm({ token, name, projects, planned }: { token: string;
     router.refresh();
   }
 
-  const Label = ({ children }: { children: string }) => <label className="mt-4 block text-[13px] font-semibold">{children}</label>;
 
   return (
     <>

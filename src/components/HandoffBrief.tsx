@@ -5,6 +5,12 @@ import { useEffect, useState } from "react";
 import type { Brief } from "@/lib/handoff";
 import { Card, Chip } from "./ui";
 
+function Section({ title, children }: { title: string; children: React.ReactNode }): React.ReactElement {
+  return (
+  <div className="border-t border-line py-3 first:border-t-0"><div className="text-xs font-semibold text-crimson">{title}</div><div className="mt-1 text-sm leading-relaxed">{children}</div></div>
+  );
+}
+
 export function HandoffBrief({ handoffId, first, thanks, initial, saved, answered, total }: { handoffId: string; first: string; thanks: string; initial: Brief | null; saved: boolean; answered: number; total: number }) {
   const router = useRouter();
   const [brief, setBrief] = useState<Brief | null>(initial);
@@ -28,9 +34,6 @@ export function HandoffBrief({ handoffId, first, thanks, initial, saved, answere
     router.refresh();
   }
 
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="border-t border-line py-3 first:border-t-0"><div className="text-xs font-semibold text-crimson">{title}</div><div className="mt-1 text-sm leading-relaxed">{children}</div></div>
-  );
 
   return (
     <>
