@@ -6,6 +6,7 @@ import { Card } from "./ui";
 
 export function ProjectSummary({ projectId }: { projectId: string }) {
   const [s, setS] = useState<SummaryResult | null>(null);
+  const [based, setBased] = useState<{ checkins: number; resolved: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -17,6 +18,7 @@ export function ProjectSummary({ projectId }: { projectId: string }) {
     setBusy(false);
     if (!res.ok) return setError(body.error ?? "Muse could not summarise this project");
     setS(body.summary);
+    setBased(body.basedOn);
   }
 
   return (
@@ -29,11 +31,12 @@ export function ProjectSummary({ projectId }: { projectId: string }) {
           {busy ? "Muse is reading…" : s ? "Summarize again" : "Summarize with Muse"}
         </button>
       </div>
-      {!s && !error && <p className="text-sm text-muted">Muse reads this project&apos;s tasks, blockers and recent check-ins and writes a short summary. It uses only what is recorded here.</p>}
+      {!s && !error && <p className="text-sm text-muted">Muse reads this project&apos;s tasks, blockers and check-in history and writes a short summary. It uses only what is recorded here.</p>}
       {error && <p className="text-sm text-crimson">{error}</p>}
       {s && (
         <div className="flex flex-col gap-3 text-sm leading-relaxed">
           <p>{s.summary}</p>
+          {based && <p className="text-xs text-muted">Based on {based.checkins} check-in{based.checkins === 1 ? "" : "s"} and {based.resolved} resolved blocker{based.resolved === 1 ? "" : "s"}.</p>}
           <p className="text-muted">{s.progress}</p>
           {s.risks.length > 0 && (
             <div className="rounded-2xl bg-warn-soft p-3.5">

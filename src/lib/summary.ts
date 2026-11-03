@@ -4,6 +4,19 @@ import type { ProjectSummary } from "./schemas";
 
 export type SummaryResult = z.infer<typeof ProjectSummary>;
 
+const HISTORY_CHARS = 12_000; // about 3,000 tokens of history
+
+/** The whole check-in history of these people, oldest first, dropping the oldest ones once it passes the budget. */
+function recentCheckins(lab: Lab, memberIds: string[]) {
+  const all = lab.checkins
+    .filter((c) => c.submitted_at && memberIds.includes(c.person_id) && c.raw?.text)
+    .sort((a, b) => a.submitted_at!.localeCompare(b.submitted_at!));
+  let used = 0;
+  let from = all.length;
+  while (from > 0 && used + Math.min(all[from - 1].raw!.text.length, 600) <= HISTORY_CHARS) used += Math.min(all[--from].raw!.text.length, 600);
+  return all.slice(from);
+}
+
 /** Everything Muse may use to summarise one project, taken from the lab's own records. */
 export function summaryContext(lab: Lab, projectId: string) {
   const project = lab.projects.find((p) => p.id === projectId)!;
@@ -14,7 +27,8 @@ export function summaryContext(lab: Lab, projectId: string) {
     project: { name: project.name, type: project.kind, goal: project.goal, deadline: project.deadline, phase: project.phase_template[project.current_phase - 1], phaseNumber: project.current_phase, phases: project.phase_template },
     tasks: tasks.map((t) => ({ title: t.title, phase: project.phase_template[t.phase - 1], status: t.status, hours: Number(t.est_hours), owner: name(t.assignee) })),
     blockers: lab.blockers.filter((b) => b.project_id === projectId && !b.resolved_at).map((b) => ({ person: name(b.person_id), phase: project.phase_template[b.phase - 1], quote: b.quote })),
-    checkins: lab.checkins.filter((c) => c.submitted_at && memberIds.includes(c.person_id) && c.raw?.text).slice(-6).map((c) => ({ person: name(c.person_id), text: c.raw!.text.slice(0, 600) })),
+    resolvedBlockers: lab.blockers.filter((b) => b.project_id === projectId && b.resolved_at).map((b) => ({ person: name(b.person_id), phase: project.phase_template[b.phase - 1], quote: b.quote, resolved: b.resolved_at!.slice(0, 10) })),
+    checkins: recentCheckins(lab, memberIds).map((c) => ({ date: c.submitted_at!.slice(0, 10), person: name(c.person_id), text: c.raw!.text.slice(0, 600) })),
     people: memberIds.map((id) => name(id)),
   };
 }

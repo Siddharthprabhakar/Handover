@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   if (!lab.projects.some((p) => p.id === body.data.projectId)) return Response.json({ error: "Project not found" }, { status: 404 });
   const ctx = summaryContext(lab, body.data.projectId);
   try {
-    return Response.json({ summary: await museJson("summary", summaryPrompt(ctx), heuristicSummary(ctx)) });
+    return Response.json({ summary: await museJson("summary", summaryPrompt(ctx), heuristicSummary(ctx)), basedOn: { checkins: ctx.checkins.length, resolved: ctx.resolvedBlockers.length } });
   } catch (e) {
     return Response.json({ error: e instanceof Error ? e.message : "Muse failed" }, { status: 502 });
   }

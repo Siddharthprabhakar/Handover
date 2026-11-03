@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "zod";
 import { MOCK } from "./mock";
 import { schemas, type JobName } from "./schemas";
 import { SYSTEM } from "./prompts";
@@ -6,26 +6,32 @@ import { SYSTEM } from "./prompts";
 const BASE = process.env.MUSE_BASE_URL ?? "https://api.meta.ai/v1";
 const MODEL = process.env.MUSE_MODEL ?? "muse-spark-1.3";
 const KEY = process.env.MODEL_API_KEY;
-// Muse thinks before it answers, which takes several seconds. Our jobs are structured extraction, so keep that short.
-const EFFORT = process.env.MUSE_REASONING ?? "minimal";
+// Muse thinks before it answers, which takes several seconds, so keep that short. Other providers (OpenAI, Groq...) get no such field unless MUSE_REASONING is set.
+const EFFORT = process.env.MUSE_REASONING ?? (BASE.includes("api.meta.ai") ? "minimal" : "");
 
 export const museMode = () => (process.env.MUSE_MOCK === "1" || !KEY ? "mock" : "live");
 
-async function chat(system: string, user: string): Promise<string> {
-  // OpenAI-compatible Chat Completions (verified live against the Meta Model API).
-  const res = await fetch(`${BASE}/chat/completions`, {
-    method: "POST",
-    headers: { "content-type": "application/json", authorization: `Bearer ${KEY}` },
-    body: JSON.stringify({
-      model: MODEL,
-      reasoning_effort: EFFORT,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    }),
-    signal: AbortSignal.timeout(60_000),
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function chat(system: string, user: string, job: JobName): Promise<string> {
+  // OpenAI-compatible Chat Completions (verified live against the Meta Model API and Gemini).
+  const body = JSON.stringify({
+    model: MODEL,
+    ...(EFFORT ? { reasoning_effort: EFFORT } : {}),
+    // the provider enforces our zod shape, so replies are valid JSON the first time
+    response_format: { type: "json_schema", json_schema: { name: job, schema: z.toJSONSchema(schemas[job] as z.ZodType) } },
+    messages: [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
   });
+  // busy providers answer 429/5xx now and then (Gemini's free tier does): wait and try again
+  let res!: Response;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    res = await fetch(`${BASE}/chat/completions`, { method: "POST", headers: { "content-type": "application/json", authorization: `Bearer ${KEY}` }, body, signal: AbortSignal.timeout(60_000) });
+    if (res.status !== 429 && res.status < 500) break;
+    await sleep(1500 * (attempt + 1));
+  }
   if (!res.ok) throw new Error(`Muse ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const data = await res.json();
   const text = data?.choices?.[0]?.message?.content;
@@ -48,7 +54,7 @@ export async function museJson<J extends JobName>(
   let lastError = "";
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      return schema.parse(extractJson(await chat(SYSTEM, prompt))) as R;
+      return schema.parse(extractJson(await chat(SYSTEM, prompt, job))) as R;
     } catch (e) {
       lastError = e instanceof Error ? e.message : String(e);
       prompt = `${user}\n\nYour previous reply was invalid (${lastError.slice(0, 200)}). Reply with valid JSON only.`;
