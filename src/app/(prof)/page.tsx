@@ -1,11 +1,14 @@
+import Link from "next/link";
+import { AssignTask } from "@/components/AssignTask";
 import { requireProfessor } from "@/lib/session";
-import { Avatar, Btn, Card, Chip, PageHeader } from "@/components/ui";
+import { Avatar, Btn, Card, Chip, PageHeader, Segments } from "@/components/ui";
 import { LoadDemo } from "@/components/LoadDemo";
 import { WorkloadCard } from "@/components/WorkloadCard";
 import { MeetingsCard } from "@/components/MeetingsCard";
 import { list } from "@/lib/db";
 import { TODAY } from "@/lib/demo";
 import { appUrl } from "@/lib/email";
+import { loadsOf } from "@/lib/loads";
 import { occurrencesInWeek } from "@/lib/meetings";
 import { ReminderButton } from "@/components/ReminderButton";
 import { Suspense } from "react";
@@ -14,6 +17,8 @@ import { ruleDigest } from "@/lib/digest";
 import { WEEK, fmtDate, initials, loadLab } from "@/lib/lab";
 
 export const dynamic = "force-dynamic";
+
+const IRB: Record<string, [string, "ok" | "warn"]> = { approved: ["IRB approved", "ok"], exempt: ["IRB exempt", "ok"], pending: ["IRB pending", "warn"] };
 
 export default async function LabOverview() {
   const session = await requireProfessor();
@@ -48,40 +53,63 @@ export default async function LabOverview() {
   const projectName = (id: string | null) => lab.projects.find((x) => x.id === id)?.name ?? null;
   const activeOvertime = lab.overtime.filter((o) => o.starts <= WEEK && o.ends >= WEEK);
   const saved = lab.digests.find((d) => d.week === WEEK);
-  const attention = digest.stuck.length + digest.missing.length + digest.needs_tasks.length;
+  const loads = loadsOf(lab);
+  const assignProjects = lab.projects.map((x) => ({ id: x.id, name: x.name, phases: x.phase_template }));
+
+  // one card per person, however many reasons they have: stuck and missing first, then people with room
+  type Entry = { name: string; quotes: string[]; missing: boolean; needsTasks: boolean };
+  const entries = new Map<string, Entry>();
+  const entry = (name: string) => entries.get(name) ?? entries.set(name, { name, quotes: [], missing: false, needsTasks: false }).get(name)!;
+  for (const s of digest.stuck) entry(s.person).quotes.push(s.quote);
+  for (const n of digest.missing) entry(n).missing = true;
+  for (const n of digest.needs_tasks) entry(n).needsTasks = true;
+  const attention = [...entries.values()].sort((a, b) => Number(b.quotes.length > 0 || b.missing) - Number(a.quotes.length > 0 || a.missing));
 
   return (
     <div className="flex flex-col gap-4 xl:h-[calc(100vh-2rem)]">
       <PageHeader title={`Good morning, ${session.name}`} sub={`Week of ${fmtDate(WEEK)} · ${submitted} of ${lab.ras.length} check-ins in`} />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-[1fr_1.35fr_1fr]">
         <Card className="flex flex-col gap-2">
-          <span className="text-[13px] text-muted">Check-ins this week</span>
-          <div className="font-heading text-[52px] font-medium leading-none">
+          <span className="text-[13px] text-muted">This week</span>
+          <div className="font-heading text-[46px] font-medium leading-none">
             {submitted}
-            <span className="ml-1.5 font-sans text-sm text-muted">/ {lab.ras.length}</span>
+            <span className="ml-1.5 font-sans text-sm text-muted">of {lab.ras.length} check-ins</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-bg">
             <div className="h-full rounded-full bg-crimson" style={{ width: `${(submitted / lab.ras.length) * 100}%` }} />
           </div>
-        </Card>
-        <Card className="flex flex-col gap-2">
-          <span className="text-[13px] text-muted">Needs attention</span>
-          <div className="font-heading text-[52px] font-medium leading-none text-crimson">{attention}</div>
-          <div className="flex flex-wrap gap-1.5">
-            {digest.stuck.map((s) => <Chip key={s.person} tone="warn">{s.person.split(" ")[0]}</Chip>)}
-            {digest.missing.map((n) => <Chip key={n} tone="light">{n.split(" ")[0]}</Chip>)}
-            {digest.needs_tasks.map((n) => <Chip key={n} tone="ok">{n.split(" ")[0]}</Chip>)}
+          <div className="mt-0.5 flex flex-wrap gap-1.5">
+            {activeOvertime.length === 0 ? <Chip tone="light">No one on overtime</Chip> : activeOvertime.map((o) => <Chip key={o.id} tone="warn">{lab.byId.get(o.person_id)?.name.split(" ")[0]} · overtime until {fmtDate(o.ends)}</Chip>)}
           </div>
         </Card>
-        <MeetingsCard weekStart={WEEK} today={TODAY} items={occurrencesInWeek(meetings, WEEK, projectName)} meetings={meetings} projects={lab.projects.map((x) => ({ id: x.id, name: x.name }))} feedUrl={token ? `${appUrl()}/api/calendar/${token}.ics` : null} />
-        <Card dark className="flex flex-col gap-2 rounded-[28px]">
-          <span className="text-[13px]">Overtime active</span>
-          <div className="font-heading text-[52px] font-medium leading-none">{activeOvertime.length}</div>
-          <span className="text-xs text-muted">
-            {activeOvertime.map((o) => `${lab.byId.get(o.person_id)?.name.split(" ")[0]} · ends ${fmtDate(o.ends)}`).join(", ") || "None this week"}
-          </span>
+
+        <Card className="flex flex-col gap-2.5">
+          <div className="flex items-center gap-2">
+            <span className="text-[13px] text-muted">Studies at a glance</span>
+            <span className="flex-1" />
+            <Link href="/projects" className="text-xs font-semibold text-crimson">All projects</Link>
+          </div>
+          {lab.projects.length === 0 && <p className="text-sm text-muted">No projects yet. Add one from Projects.</p>}
+          {lab.projects.slice(0, 3).map((pr) => {
+            const blockers = lab.blockers.filter((b) => b.project_id === pr.id && !b.resolved_at).length;
+            const due = pr.phase_due?.[pr.current_phase - 1];
+            return (
+              <Link key={pr.id} href={`/projects/${pr.id}`} className="flex flex-col gap-1.5 rounded-2xl bg-bg p-3">
+                <div className="flex items-center gap-2">
+                  <b className="min-w-0 flex-1 truncate text-sm font-semibold">{pr.name}</b>
+                  {pr.irb_status && <Chip tone={IRB[pr.irb_status][1]}>{IRB[pr.irb_status][0]}</Chip>}
+                  {blockers > 0 && <Chip tone="warn">{blockers} blocker{blockers > 1 ? "s" : ""}</Chip>}
+                </div>
+                <Segments current={pr.current_phase} total={pr.phase_template.length} />
+                <span className="text-xs text-muted">{pr.phase_template[pr.current_phase - 1]} · phase {pr.current_phase} of {pr.phase_template.length}{due ? ` · due ${fmtDate(due)}` : ""}</span>
+              </Link>
+            );
+          })}
+          {lab.projects.length > 3 && <span className="text-xs text-muted">+{lab.projects.length - 3} more</span>}
         </Card>
+
+        <MeetingsCard weekStart={WEEK} today={TODAY} items={occurrencesInWeek(meetings, WEEK, projectName)} meetings={meetings} projects={lab.projects.map((x) => ({ id: x.id, name: x.name }))} feedUrl={token ? `${appUrl()}/api/calendar/${token}.ics` : null} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2 xl:min-h-0 xl:flex-1 xl:grid-cols-3">
@@ -95,85 +123,48 @@ export default async function LabOverview() {
         </div>
 
         <div className="flex flex-col gap-3 xl:min-h-0">
-          <div className="flex items-baseline gap-2 px-1">
+          <div className="flex flex-wrap items-baseline gap-2 px-1">
             <h2 className="font-heading text-xl font-bold">Needs attention</h2>
-            <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson" title="Read from this week&apos;s check-ins">Muse read the check-ins</span>
-            <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson">{attention}</span>
+            <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson">{attention.length}</span>
+            <span className="text-xs text-muted">Muse read the check-ins</span>
           </div>
           {/* long lists scroll inside the column so the rest of the page keeps its shape */}
           <div className="flex flex-col gap-3 pr-1 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
-          {digest.stuck.map((s) => {
-            const p = byName.get(s.person);
-            return (
-              <Card key={s.person} className="flex flex-col gap-2 !rounded-[22px] !p-[18px]">
-                <div className="flex items-center gap-2.5">
-                  <Avatar initials={initials(s.person)} />
-                  <div className="flex-1">
-                    <div className="font-semibold">{s.person}</div>
-                    <div className="text-xs text-muted">{p ? lab.projectsOf(p.id).join(" · ") : ""}</div>
+            {attention.map((e) => {
+              const p = byName.get(e.name);
+              const c = p && lab.weekCheckins.find((x) => x.person_id === p.id);
+              const l = p ? lab.load(p.id) : null;
+              return (
+                <Card key={e.name} className="flex flex-col gap-2.5 !rounded-[22px] !p-[18px]">
+                  <div className="flex items-center gap-2.5">
+                    <Avatar initials={initials(e.name)} />
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold">{e.name}</div>
+                      <div className="truncate text-xs text-muted">{p ? lab.projectsOf(p.id).join(" · ") : ""}</div>
+                    </div>
+                    <div className="flex flex-wrap justify-end gap-1">
+                      {e.quotes.length > 0 && <Chip tone="warn">Stuck?</Chip>}
+                      {e.missing && <Chip>No check-in</Chip>}
+                      {e.needsTasks && <Chip tone="ok">Needs tasks</Chip>}
+                    </div>
                   </div>
-                  <Chip tone="warn">Stuck?</Chip>
-                </div>
-                <p className="text-sm text-muted">&ldquo;{s.quote}&rdquo;</p>
-              </Card>
-            );
-          })}
-          {digest.missing.map((n) => {
-            const p = byName.get(n);
-            const c = p && lab.weekCheckins.find((x) => x.person_id === p.id);
-            return (
-              <Card key={n} className="flex flex-col gap-2 !rounded-[22px] !p-[18px]">
-                <div className="flex items-center gap-2.5">
-                  <Avatar initials={initials(n)} />
-                  <div className="flex-1">
-                    <div className="font-semibold">{n}</div>
-                    <div className="text-xs text-muted">{p ? lab.projectsOf(p.id).join(" · ") : ""}</div>
+                  {e.quotes.map((q) => <p key={q} className="border-l-2 border-warn pl-3 text-sm text-muted">&ldquo;{q}&rdquo;</p>)}
+                  {e.missing && <p className="text-sm text-muted">{c?.reminders_sent ?? 0} reminder{c?.reminders_sent === 1 ? "" : "s"} sent so far, so nothing is reported on {p ? lab.projectsOf(p.id).length : 0} project(s).</p>}
+                  {e.needsTasks && p && l && <p className="text-sm text-muted">Has room: {l.tasks} open tasks, {l.hours} of {p.weekly_hours} hours.</p>}
+                  <div className="flex flex-wrap gap-2">
+                    {e.quotes.length > 0 && <Link href="/checkins" className="rounded-full border border-line px-3 py-1.5 text-xs font-semibold">See check-in</Link>}
+                    {e.missing && <ReminderButton kind="small" label="Send reminder" personId={p?.id} disabled={(c?.reminders_sent ?? 0) >= 2} />}
+                    {e.needsTasks && p && <AssignTask personId={p.id} loads={loads} projects={assignProjects} />}
                   </div>
-                  <Chip>No check-in</Chip>
-                </div>
-                <p className="text-sm text-muted">
-                  {c?.reminders_sent ?? 0} reminder{c?.reminders_sent === 1 ? "" : "s"} sent so far. On {p ? lab.projectsOf(p.id).length : 0} project(s), so each is unreported.
-                </p>
-                <div><ReminderButton kind="small" label="Send reminder now" personId={p?.id} disabled={(c?.reminders_sent ?? 0) >= 2} /></div>
-              </Card>
-            );
-          })}
-          {digest.needs_tasks.map((n) => {
-            const p = byName.get(n);
-            const l = p ? lab.load(p.id) : null;
-            return (
-              <Card key={n} className="flex flex-col gap-2 !rounded-[22px] !p-[18px]">
-                <div className="flex items-center gap-2.5">
-                  <Avatar initials={initials(n)} />
-                  <div className="flex-1">
-                    <div className="font-semibold">{n}</div>
-                    <div className="text-xs text-muted">{p ? lab.projectsOf(p.id).join(" · ") : ""}</div>
-                  </div>
-                  <Chip tone="ok">Needs tasks</Chip>
-                </div>
-                {p && l && <p className="text-sm text-muted">Has room: {l.tasks} open tasks, {l.hours} of {p.weekly_hours} hours.</p>}
-              </Card>
-            );
-          })}
-          {attention === 0 && <Card className="!rounded-[22px] !p-[18px] text-sm text-muted">Nobody needs attention this week.</Card>}
+                </Card>
+              );
+            })}
+            {attention.length === 0 && <Card className="!rounded-[22px] !p-[18px] text-sm text-muted">Nobody needs attention this week.</Card>}
           </div>
         </div>
 
         <div className="flex flex-col gap-4 xl:min-h-0 xl:overflow-y-auto">
-          <WorkloadCard rows={lab.ras.map((r) => ({ id: r.id, name: r.name, ...lab.load(r.id), maxTasks: r.max_tasks, weeklyHours: r.weekly_hours }))} />
-          {activeOvertime.length > 0 && (
-            <Card className="xl:flex-1">
-              <h2 className="mb-2 font-heading text-lg font-bold">Overtime &amp; recovery</h2>
-              {activeOvertime.map((o) => (
-                <div key={o.id}>
-                  <Chip tone="warn">{lab.byId.get(o.person_id)?.name.split(" ")[0]} · overtime until {fmtDate(o.ends)}</Chip>
-                  <p className="mt-2.5 text-[13px] leading-relaxed text-muted">
-                    {o.reason}. A recovery week follows and new assignments pause automatically. Hours are recorded for payroll; check with your department.
-                  </p>
-                </div>
-              ))}
-            </Card>
-          )}
+          <WorkloadCard className="xl:flex-1" rows={lab.ras.map((r) => ({ id: r.id, name: r.name, ...lab.load(r.id), maxTasks: r.max_tasks, weeklyHours: r.weekly_hours }))} overtime={activeOvertime.map((o) => ({ id: o.id, name: lab.byId.get(o.person_id)?.name ?? "Someone", until: fmtDate(o.ends), reason: o.reason }))} />
         </div>
       </div>
     </div>
