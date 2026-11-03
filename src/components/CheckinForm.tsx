@@ -11,7 +11,7 @@ const field = "w-full resize-none rounded-[14px] bg-bg px-3.5 py-3 text-sm outli
 
 const Label = ({ children }: { children: string }) => <label className="mt-4 block text-[13px] font-semibold">{children}</label>;
 
-export function CheckinForm({ token, name, projects, planned }: { token: string; name: string; projects: Project[]; planned: string[] }) {
+export function CheckinForm({ token, name, projects, planned, voice }: { token: string; name: string; projects: Project[]; planned: string[]; voice: string }) {
   const router = useRouter();
   const [main, ...others] = projects;
   const [done, setDone] = useState<string[]>([]);
@@ -59,7 +59,7 @@ export function CheckinForm({ token, name, projects, planned }: { token: string;
               })}
             </>
           )}
-          <VoiceCheckin token={token} onText={(t) => setF((x) => ({ ...x, challenges: x.challenges ? `${x.challenges}\n${t}` : t }))} />
+          <VoiceCheckin voice={voice} token={token} onText={(t) => setF((x) => ({ ...x, challenges: x.challenges ? `${x.challenges}\n${t}` : t }))} />
           <Label>What challenges or confusions did you have? Still need help?</Label>
           <textarea rows={2} className={`${field} mt-1.5`} value={f.challenges} onChange={(e) => setF({ ...f, challenges: e.target.value })} />
           <Label>Plans for next week</Label>

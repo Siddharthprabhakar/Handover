@@ -7,7 +7,7 @@ import { Recorder } from "./Recorder";
 const MAX = 120;
 
 /** Student side: record up to two minutes, get the words back, fix them, then send as usual. */
-export function VoiceCheckin({ token, onText }: { token: string; onText: (text: string) => void }) {
+export function VoiceCheckin({ token, voice, onText }: { token: string; voice: string; onText: (text: string) => void }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -34,7 +34,7 @@ export function VoiceCheckin({ token, onText }: { token: string; onText: (text: 
     );
   return (
     <div className="mt-3.5 flex flex-col gap-2 rounded-2xl bg-bg p-4">
-      <p className="text-[13px] text-muted">Talk for up to 2 minutes about your week, challenges and plans. We write it out below so you can fix anything before you send. Your professor keeps the recording.</p>
+      <p className="text-[13px] text-muted">Talk for up to 2 minutes about your week, challenges and plans. Transcribed by {voice}, shown below so you can fix anything before you send. Your professor keeps the recording.</p>
       {busy ? <p className="text-sm font-semibold text-crimson">{busy}</p> : <Recorder maxSec={MAX} onReady={ready} />}
       {error && <p className="text-[13px] text-crimson">{error}</p>}
       {!busy && <button type="button" onClick={() => setOpen(false)} className="self-start text-[13px] font-semibold text-muted">Cancel</button>}

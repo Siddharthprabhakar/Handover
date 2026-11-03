@@ -1,3 +1,4 @@
+import { museStatus } from "@/lib/muse";
 import { notFound } from "next/navigation";
 import { list } from "@/lib/db";
 import { CheckinForm } from "@/components/CheckinForm";
@@ -65,7 +66,7 @@ export default async function CheckinPage({ params }: PageProps<"/checkin/[token
             <h1 className="font-heading text-[30px] font-bold">Hi {first}, your weekly check-in</h1>
             <p className="text-sm text-muted">About 2 minutes. Write like you would tell a colleague.</p>
           </div>
-          <CheckinForm token={token} name={first} projects={projects} planned={planned} />
+          <CheckinForm token={token} name={first} projects={projects} planned={planned} voice={museStatus().voice} />
         </>
       )}
     </div>

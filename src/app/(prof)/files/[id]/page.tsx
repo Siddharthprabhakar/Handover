@@ -1,3 +1,4 @@
+import { museStatus } from "@/lib/muse";
 import { notFound } from "next/navigation";
 import { AutoRefresh } from "@/components/AutoRefresh";
 import { FileEditor } from "@/components/FileEditor";
@@ -17,7 +18,7 @@ export default async function FileDetail({ params }: { params: Promise<{ id: str
     <>
       <AutoRefresh active={file.status === "transcribing"} />
       <PageHeader title={file.title} sub={`${kindLabel[file.kind]} · ${new Date(file.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}`} back={{ href: "/files", label: "Files" }} />
-      <FileEditor file={file} projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
+      <FileEditor asr={museStatus().voice} file={file} projects={projects.map((p) => ({ id: p.id, name: p.name }))} />
     </>
   );
 }

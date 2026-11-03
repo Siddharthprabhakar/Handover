@@ -10,6 +10,12 @@ const KEY = process.env.MODEL_API_KEY;
 const EFFORT = process.env.MUSE_REASONING ?? (BASE.includes("api.meta.ai") ? "minimal" : "");
 
 export const museConfig = { BASE, MODEL, KEY };
+/** What the app is running on, for the badge in the sidebar and the labels on transcripts. */
+export function museStatus() {
+  const meta = BASE.includes("api.meta.ai");
+  const host = (() => { try { return new URL(BASE).hostname; } catch { return BASE; } })();
+  return { live: museMode() === "live", provider: meta ? "Meta" : host.includes("googleapis") ? "Gemini" : host, model: MODEL, voice: meta ? "Muse Voice Transcribe" : "AI transcription" };
+}
 export const museMode = () => (process.env.MUSE_MOCK === "1" || !KEY ? "mock" : "live");
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));

@@ -44,11 +44,15 @@ function Nav({ path, onNavigate }: { path: string; onNavigate?: () => void }) {
   );
 }
 
-export type SidebarUser = { name: string; email: string; lab: string; demo: boolean };
+export type SidebarUser = { name: string; email: string; lab: string; demo: boolean; muse: { live: boolean; provider: string; model: string } };
 
 function UserBox({ user }: { user: SidebarUser }) {
   return (
     <div className="rounded-2xl bg-bg p-3.5">
+      <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold text-muted" title={`Model: ${user.muse.model}`}>
+        <i className={`h-2 w-2 rounded-full ${user.muse.live ? "bg-ok" : "bg-warn"}`} />
+        {user.muse.live ? `Muse live · ${user.muse.provider}` : "Muse: sample answers"}
+      </div>
       <div className="truncate text-sm font-semibold">{user.name}</div>
       <div className="truncate text-xs text-muted">{user.demo ? "Demo mode: sample data" : user.lab}</div>
       {!user.demo && (

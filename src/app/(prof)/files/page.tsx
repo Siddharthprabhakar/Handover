@@ -1,3 +1,4 @@
+import { museStatus } from "@/lib/muse";
 import Link from "next/link";
 import { AddRecording } from "@/components/AddRecording";
 import { AutoRefresh } from "@/components/AutoRefresh";
@@ -35,7 +36,7 @@ export default async function Files({ searchParams }: { searchParams: Promise<{ 
   return (
     <>
       <AutoRefresh active={all.some((f) => f.status === "transcribing")} />
-      <PageHeader title="Files" sub="Voice check-ins and interview recordings, with transcripts, in one place." />
+      <PageHeader title="Files" sub={`Voice check-ins and interview recordings, transcribed by ${museStatus().voice}, in one place.`} />
       {recordings ? (
         <AddRecording projects={projects.map((p) => ({ id: p.id, name: p.name }))} maxSec={MAX_SEC} />
       ) : (

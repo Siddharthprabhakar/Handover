@@ -115,6 +115,8 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
         </Card>
       )}
 
+      <ProjectSummary projectId={id} />
+
       <EvidenceCard projectId={id} questions={project.research_questions ?? []} synthesis={project.synthesis ?? null} ready={interviews.filter((x) => x.status === "ready" && x.transcript_text).length} />
 
       {project.notes && (project.notes.resources.length > 0 || project.notes.communication.length > 0) && (
@@ -130,7 +132,6 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
 
       <StudySetup projectId={id} irbStatus={project.irb_status ?? null} irbRef={project.irb_ref ?? null} irbDate={project.irb_date ?? null} target={project.participant_target ?? null} questions={project.research_questions ?? []} recruited={labels(interviews)} transcribed={labels(interviews.filter((f) => f.status === "ready"))} />
 
-      <ProjectSummary projectId={id} />
       <ProjectPeople projectId={id} members={members.map((m) => ({ id: m.id, name: m.name }))} others={lab.ras.filter((r) => !members.some((m) => m.id === r.id)).map((r) => ({ id: r.id, name: r.name }))} />
 
       <div className="grid items-start gap-4 lg:grid-cols-2">

@@ -9,7 +9,7 @@ import { ActionBar, Card, Chip } from "./ui";
 const input = "w-full rounded-[14px] bg-bg px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-crimson/30";
 const ghost = "rounded-full border border-line px-4 py-2 text-[13px] font-semibold disabled:opacity-50";
 
-export function FileEditor({ file, projects }: { file: FileRow; projects: { id: string; name: string }[] }) {
+export function FileEditor({ file, projects, asr }: { file: FileRow; projects: { id: string; name: string }[]; asr: string }) {
   const router = useRouter();
   const [title, setTitle] = useState(file.title);
   const [projectId, setProjectId] = useState(file.project_id ?? "");
@@ -72,6 +72,7 @@ export function FileEditor({ file, projects }: { file: FileRow; projects: { id: 
       <Card className="flex flex-col gap-3">
         <div className="flex items-center gap-2.5">
           <h2 className="font-heading text-xl font-bold">Transcript</h2>
+          {file.status === "ready" && !demo && <Chip tone="light">Transcribed by {asr}</Chip>}
           {file.status !== "ready" && <Chip tone={file.status === "failed" ? "crimson" : "warn"}>{file.status === "failed" ? "Failed" : "Transcribing…"}</Chip>}
         </div>
         {(file.status === "failed" || file.status === "transcribing") && (

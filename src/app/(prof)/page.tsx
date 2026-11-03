@@ -97,6 +97,7 @@ export default async function LabOverview() {
         <div className="flex flex-col gap-3 xl:min-h-0">
           <div className="flex items-baseline gap-2 px-1">
             <h2 className="font-heading text-xl font-bold">Needs attention</h2>
+            <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson" title="Read from this week&apos;s check-ins">Muse read the check-ins</span>
             <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson">{attention}</span>
           </div>
           {/* long lists scroll inside the column so the rest of the page keeps its shape */}
