@@ -4,13 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 /** Move the project one phase forward or back. Asks first when the current phase still has open work. */
-export function PhaseControl({ projectId, current, names, warning }: { projectId: string; current: number; names: string[]; warning: string }) {
+export function PhaseControl({ projectId, current, names, warning, gate }: { projectId: string; current: number; names: string[]; warning: string; gate: { phase: number; text: string } | null }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   async function move(to: number) {
-    if (to > current && warning && !confirm(`${warning}\n\nMove to ${names[to - 1]} anyway?`)) return;
+    // an open IRB only matters when crossing into the first phase that involves participants
+    const issues = [to > current ? warning : "", gate && current < gate.phase && to >= gate.phase ? gate.text : ""].filter(Boolean).join(" ");
+    if (issues && !confirm(`${issues}\n\nMove to ${names[to - 1]} anyway?`)) return;
     setBusy(true);
     setError("");
     const res = await fetch("/api/projects/phase", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ projectId, to }) });

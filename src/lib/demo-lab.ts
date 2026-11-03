@@ -59,6 +59,8 @@ export async function loadDemoLab(labId: string): Promise<boolean> {
 
   await addSamples(labId);
   const projects = new Map((await list("projects", { col: "lab_id", eq: labId })).map((p) => [p.name, p]));
+  await update("projects", projects.get(WAY)!.id, { irb_status: "approved", irb_ref: "IRB-2026-0412", irb_date: addDays(WEEK, -40), participant_target: 12 });
+  await update("projects", projects.get(THESIS)!.id, { irb_status: "approved", irb_ref: "IRB-2026-0377", irb_date: addDays(WEEK, -90), participant_target: 8 });
   const ids = new Map<string, string>();
   for (const { name, project, program } of PEOPLE) {
     const email = `${name.toLowerCase().replace(/\s+/g, ".")}@demo.invalid`;
@@ -103,10 +105,28 @@ export async function loadDemoLab(labId: string): Promise<boolean> {
     await insert("checkins", { person_id: ids.get(name)!, week, token: `ck-${crypto.randomUUID().replace(/-/g, "")}`, reminders_sent: 0, ...(await submit(name, week, said, at)) });
   }
 
-  await insert("files", {
-    lab_id: labId, kind: "interview", person_id: null, project_id: projects.get(WAY)!.id, checkin_id: null, title: "Interview P1: finding rooms on campus",
-    storage_path: `demo/${crypto.randomUUID()}.wav`, duration_sec: 312, size_bytes: null, consent: true, participant_label: "P1", // no audio behind it: the page hides the player for demo/ paths
-    transcript: TRANSCRIPT, transcript_text: toText(TRANSCRIPT), analysis: null, status: "ready", error: null, created_at: now,
-  });
+  // three interviews of twelve planned; P2 and P3 are short on purpose
+  const interviews: { label: string; title: string; turns: Turn[]; sec: number }[] = [
+    { label: "P1", title: "Interview P1: finding rooms on campus", turns: TRANSCRIPT, sec: 312 },
+    { label: "P2", title: "Interview P2: first week lost", sec: 268, turns: [
+      { speaker: "Interviewer", text: "How did you find your classes in the first week?" },
+      { speaker: "Participant", text: "Mostly by following other students. The building numbers on the map did not match the signs on the doors." },
+      { speaker: "Interviewer", text: "What did that feel like?" },
+      { speaker: "Participant", text: "Stressful. I arrived late to my first lab because I went to the wrong wing." },
+    ] },
+    { label: "P3", title: "Interview P3: using the campus app", sec: 341, turns: [
+      { speaker: "Interviewer", text: "Do you use the campus app to get around?" },
+      { speaker: "Participant", text: "Only to look up the building. Once I am inside it is no help, there is no floor plan." },
+      { speaker: "Interviewer", text: "What would you change?" },
+      { speaker: "Participant", text: "Show me the room on a floor map, and the nearest stairs." },
+    ] },
+  ];
+  for (const i of interviews) {
+    await insert("files", {
+      lab_id: labId, kind: "interview", person_id: null, project_id: projects.get(WAY)!.id, checkin_id: null, title: i.title,
+      storage_path: `demo/${crypto.randomUUID()}.wav`, duration_sec: i.sec, size_bytes: null, consent: true, participant_label: i.label, // no audio behind it: the page hides the player for demo/ paths
+      transcript: i.turns, transcript_text: toText(i.turns), analysis: null, status: "ready", error: null, created_at: now,
+    });
+  }
   return true;
 }
