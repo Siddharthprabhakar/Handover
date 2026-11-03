@@ -88,7 +88,7 @@ export function PageHeader({ title, sub, back, right }: { title: string; sub?: s
 
 export function ActionBar({ hint, children }: { hint?: string; children: ReactNode }) {
   return (
-    <div className="sticky bottom-4 mt-auto flex flex-wrap items-center gap-2.5 rounded-[20px] bg-surface px-5 py-3">
+    <div className="sticky bottom-4 mt-auto flex flex-wrap items-center gap-2.5 action-bar">
       {hint && <span className="text-[13px] text-muted">{hint}</span>}
       <span className="flex-1" />
       {children}

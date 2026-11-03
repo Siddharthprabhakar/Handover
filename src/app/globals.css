@@ -56,3 +56,12 @@ select:not(:disabled):hover { background-color: color-mix(in srgb, var(--ink) 6%
 a[href] > .rounded-3xl, a[href][class*="rounded-[18px]"] { transition: transform 140ms, box-shadow 160ms; }
 a[href] > .rounded-3xl:hover, a[href][class*="rounded-[18px]"]:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgb(27 26 31 / 0.10); }
 a[href][class*="border-dashed"]:hover { background: var(--crimson-soft); border-color: var(--crimson); }
+
+/* The bottom action bar: raised, bordered and shadowed so it never blends into the cards. The last shadow is a page-coloured band that hides cards scrolling past under the gap. */
+.action-bar {
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid #d9d5cd;
+  padding: 0.7rem 1.25rem;
+  box-shadow: 0 10px 28px rgb(27 26 31 / 0.2), 0 16px 0 0 var(--bg);
+}

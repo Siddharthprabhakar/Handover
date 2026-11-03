@@ -90,7 +90,7 @@ export function CheckinForm({ token, name, projects, planned }: { token: string;
         </div>
       </div>
 
-      <div className="sticky bottom-4 mt-4 flex flex-wrap items-center gap-2.5 rounded-[20px] bg-surface px-5 py-3">
+      <div className="sticky bottom-4 mt-4 flex flex-wrap items-center gap-2.5 action-bar">
         <span className="text-[13px] text-muted">{error ? <span className="text-crimson">{error}</span> : `Thanks, ${name}. Your professor and you can both see what you share.`}</span>
         <span className="flex-1" />
         <button type="button" disabled={busy} onClick={send} className="rounded-full bg-crimson px-[18px] py-2.5 text-sm font-semibold text-white disabled:opacity-60">

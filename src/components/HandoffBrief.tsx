@@ -84,7 +84,7 @@ export function HandoffBrief({ handoffId, first, thanks, initial, saved, answere
         </div>
       </div>
 
-      <div className="sticky bottom-4 mt-4 flex flex-wrap items-center gap-2.5 rounded-[20px] bg-surface px-5 py-3">
+      <div className="sticky bottom-4 mt-4 flex flex-wrap items-center gap-2.5 action-bar">
         <span className="text-[13px] text-muted">{saved ? "Saved to the project." : "Nothing is shared until you save."}</span>
         <span className="flex-1" />
         {saved ? <Chip tone="ok">Saved to project</Chip> : (
