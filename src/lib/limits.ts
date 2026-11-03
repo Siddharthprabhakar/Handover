@@ -5,7 +5,7 @@ import { fmtDate } from "./format";
 export type Window = { starts: string; ends: string };
 export type Load = { id: string; name: string; tasks: number; hours: number; maxTasks: number; weeklyHours: number; ot: Window[] };
 export type PlanTask = { title: string; hours: number; owner: string | null };
-export type PlanData = { phases: { name: string; tasks: PlanTask[] }[] };
+export type PlanData = { phases: { name: string; tasks: PlanTask[]; due?: string | null }[] };
 
 export const MAX_OVERTIME_DAYS = 14;
 export const RECOVERY_DAYS = 7;

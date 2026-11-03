@@ -9,7 +9,7 @@ export const CheckinParse = z.object({
       blockers: z.array(z.object({ quote: z.string() })),
       next: z.array(z.string()),
       support: z.array(z.string()),
-      phase: z.number().int().min(1).max(7).nullable(),
+      phase: z.number().int().min(1).max(12).nullable(),
       needs_tasks: z.boolean(),
     }),
   ),
@@ -61,5 +61,15 @@ export const InterviewAnalysis = z.object({
   follow_ups: z.array(z.string()),
 });
 
-export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary, interview: InterviewAnalysis };
+export const ProjectImport = z.object({
+  name: z.string(),
+  kind: z.enum(["lab", "thesis"]),
+  goal: z.string(),
+  deadline: z.string().nullable(),
+  phases: z.array(z.object({ name: z.string(), due: z.string().nullable(), tasks: z.array(z.object({ title: z.string(), hours: z.number(), owner: z.string().nullable() })) })),
+  resources: z.array(z.string()),
+  communication: z.array(z.string()),
+});
+
+export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary, interview: InterviewAnalysis, projectplan: ProjectImport };
 export type JobName = keyof typeof schemas;

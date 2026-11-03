@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProjectPeople } from "@/components/ProjectPeople";
 import { ProjectSummary } from "@/components/ProjectSummary";
 import { StudySetup } from "@/components/StudySetup";
+import { PhaseEditor } from "@/components/PhaseEditor";
 import { PhaseControl } from "@/components/PhaseControl";
 import { TaskToggle } from "@/components/TaskToggle";
 import { ActionBar, Avatar, Card, Chip, PageHeader } from "@/components/ui";
@@ -20,7 +21,7 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
   if (!project) notFound();
 
   const sp = await searchParams;
-  const selected = Math.min(7, Math.max(1, Number(sp.phase) || project.current_phase));
+  const selected = Math.min(project.phase_template.length, Math.max(1, Number(sp.phase) || project.current_phase));
   const interviews = (await list("files", { col: "lab_id", eq: session.labId })).filter((f) => f.project_id === id && f.kind === "interview");
   const tasks = lab.tasks.filter((t) => t.project_id === id);
   const members = lab.members.filter((m) => m.project_id === id).map((m) => lab.byId.get(m.person_id)!);
@@ -33,7 +34,7 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
     const done = ts.filter((t) => t.status === "done").length;
     const progress = status === "done" ? 1 : ts.length ? done / ts.length : 0;
     const owners = [...new Set(ts.map((t) => t.assignee).filter(Boolean))].slice(0, 3).map((a) => lab.byId.get(a!)!);
-    return { n, name, status, progress, owners, blocked: blockers.some((b) => b.phase === n) };
+    return { n, name, status, progress, owners, due: project.phase_due?.[i] ?? null, blocked: blockers.some((b) => b.phase === n) };
   });
   const cur = phases[selected - 1];
   const curTasks = tasks.filter((t) => t.phase === selected);
@@ -79,15 +80,16 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
           <Chip tone={project.kind === "lab" ? "crimson" : "ok"}>{project.kind === "lab" ? "Lab" : "Thesis"}</Chip>
           <span className="flex-1" />
           <span className="hidden text-[13px] text-muted sm:inline">Updates from weekly check-ins and completed tasks</span>
+          <PhaseEditor projectId={id} current={project.current_phase} phases={project.phase_template.map((name, i) => ({ name, due: project.phase_due?.[i] ?? "" }))} taskCounts={project.phase_template.map((_, i) => tasks.filter((t) => t.phase === i + 1).length)} />
         </div>
-        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 xl:grid-cols-7">
+        <div className="grid gap-2.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))" }}>
           {phases.map((p) => (
             <Link
               key={p.n}
               href={`/projects/${id}?phase=${p.n}`}
               className={`relative flex min-h-[170px] flex-col gap-2 rounded-[18px] p-3.5 ${tone[p.status]} ${p.n === selected ? "ring-2 ring-ink ring-offset-2" : ""}`}
             >
-              <span className="font-heading text-xs font-medium opacity-70">0{p.n}</span>
+              <span className="font-heading text-xs font-medium opacity-70">{String(p.n).padStart(2, "0")}{p.due && ` · due ${fmtDate(p.due)}`}</span>
               <span className="font-heading text-[17px] font-bold">{p.name}</span>
               <span className="text-xs opacity-75">{label[p.status]}</span>
               <span className={`h-1.5 overflow-hidden rounded-full ${p.status === "todo" ? "bg-line" : "bg-white/25"}`}>
@@ -108,6 +110,17 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
         <Card className="!bg-crimson-soft">
           <b>All {phaseTasks.length} tasks in {nowName} are done.</b>
           <span className="block text-sm text-muted">{openBlockers ? `${openBlockers} blocker${openBlockers > 1 ? "s are" : " is"} still open. ` : ""}Ready to move on to {project.phase_template[project.current_phase]}? Use the button at the bottom.</span>
+        </Card>
+      )}
+
+      {project.notes && (project.notes.resources.length > 0 || project.notes.communication.length > 0) && (
+        <Card className="grid gap-5 sm:grid-cols-2">
+          {([["What the partner provides", project.notes.resources], ["How the team communicates", project.notes.communication]] as const).map(([title, items]) => items.length > 0 && (
+            <div key={title}>
+              <h2 className="mb-2 font-heading text-lg font-bold">{title}</h2>
+              <ul className="list-disc space-y-1 pl-5 text-sm leading-relaxed">{items.map((x) => <li key={x}>{x}</li>)}</ul>
+            </div>
+          ))}
         </Card>
       )}
 

@@ -45,8 +45,8 @@ export default async function Projects({ searchParams }: PageProps<"/projects">)
                 </div>
                 <h2 className="font-heading text-[22px] font-bold">{p.name}</h2>
                 <p className="text-sm leading-relaxed text-muted">{p.goal}</p>
-                <Segments current={p.current_phase} />
-                <div className="text-[13px] font-medium">Phase {p.current_phase} of 7 · {p.phase_template[p.current_phase - 1]}</div>
+                <Segments current={p.current_phase} total={p.phase_template.length} />
+                <div className="text-[13px] font-medium">Phase {p.current_phase} of {p.phase_template.length} · {p.phase_template[p.current_phase - 1]}</div>
                 <div className="mt-auto flex items-center gap-2">
                   {people.slice(0, 4).map((x) => <Avatar key={x.id} initials={initials(x.name)} size={28} />)}
                   <span className="text-xs text-muted">{people.length === 1 ? "1 student · you advise" : `${people.length} people`}</span>

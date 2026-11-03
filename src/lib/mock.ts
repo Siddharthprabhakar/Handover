@@ -2,6 +2,7 @@ import type { JobName } from "./schemas";
 
 // Saved sample answers, used when MUSE_MOCK=1 or no API key is set.
 export const MOCK: Record<JobName, unknown> = {
+  projectplan: { name: "Imported project", kind: "lab", goal: "", deadline: null, phases: [], resources: [], communication: [] },
   interview: { summary: "Sample analysis. Turn on a live model to analyse a real recording.", themes: [], follow_ups: [] },
   summary: {
     summary: "The project is in its middle phase. Planning and recruitment are finished and interviews are under way.",

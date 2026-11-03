@@ -10,6 +10,7 @@ export type Project = {
   id: string; lab_id: string; name: string; kind: "lab" | "thesis"; goal: string | null;
   phase_template: string[]; current_phase: number; deadline: string | null;
   phase_log?: { from: number; to: number; by: string; at: string }[]; // who moved the project on, newest last
+  phase_due?: (string | null)[]; notes?: { resources: string[]; communication: string[] } | null; // due date per phase, and notes from an imported plan
   irb_status?: "pending" | "approved" | "exempt" | null; irb_ref?: string | null; irb_date?: string | null; participant_target?: number | null;
 };
 export type ProjectMember = { project_id: string; person_id: string };

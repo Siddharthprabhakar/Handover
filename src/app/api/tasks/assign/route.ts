@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const Body = z.object({
   personId: z.string(),
   projectId: z.string(),
-  phase: z.number().int().min(1).max(7),
+  phase: z.number().int().min(1).max(12),
   title: z.string().min(1).max(200),
   hours: z.number().min(0.5).max(60),
   // the only way past the weekly cap: a reason and a date, up to two weeks

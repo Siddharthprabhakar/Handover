@@ -74,3 +74,18 @@ export function interviewPrompt(transcript: string, context: { title: string; pr
 Return JSON: {"summary": string (3-4 plain sentences),"themes":[{"title": string,"description": string (one sentence),"quotes": string[] (1-3 exact quotes copied from the transcript)}],"follow_ups": string[] (up to 4 questions worth asking next)}.
 Find 2-5 themes. Quotes must be copied word for word from the transcript. Do not invent anything the transcript does not say.`;
 }
+
+export function projectPlanPrompt(text: string, ctx: { today: string; people: string[] }) {
+  return `A professor uploaded this project plan document (Word, Excel or text). Turn it into a project journey.
+"""${text}"""
+
+Today is ${ctx.today}. People in the lab: ${JSON.stringify(ctx.people)}.
+
+Return JSON: {"name": string (the project name, from the document),"kind": "lab" | "thesis" ("thesis" only for a single student's thesis or dissertation, otherwise "lab"),"goal": string (1-3 sentences on what the project is for, from the document),"deadline": string|null (the final due date, YYYY-MM-DD),"phases":[{"name": string,"due": string|null (YYYY-MM-DD),"tasks":[{"title": string,"hours": number,"owner": string|null}]}],"resources": string[] (things the document says a partner, client or sponsor will provide, or access the team needs),"communication": string[] (meeting times, channels and who speaks for the project, one fact per item)}.
+Rules:
+- Phases are the stages of the work in date order. If the document lists dated deliverables or milestones, each one becomes a phase named after it. Use 3 to 12 phases; merge the smallest if there are more.
+- A date with no year uses the year ${ctx.today.slice(0, 4)}.
+- Tasks come from what the document says: project-specific deliverables, requests for access or equipment, and the steps clearly needed to produce a phase's deliverable. 1 to 4 per phase, and none if the document gives nothing for it. Do not invent research content.
+- hours is a rough estimate for one person. owner is a name from the people list only if the document names that person, otherwise null.
+- Copy meeting times, tools and partner names exactly as written.`;
+}

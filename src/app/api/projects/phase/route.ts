@@ -5,7 +5,7 @@ import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-const Body = z.object({ projectId: z.string(), to: z.number().int().min(1).max(7) });
+const Body = z.object({ projectId: z.string(), to: z.number().int().min(1).max(12) });
 
 // A person decides when a project moves on. The task list only suggests it. One step at a time, and every move is logged with who made it.
 export async function POST(req: Request) {
