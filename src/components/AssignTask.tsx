@@ -57,8 +57,8 @@ function Modal({ personId, loads, projects, onClose }: { personId: string; loads
   }
 
   return (
-    <div className="fixed inset-0 z-20 flex items-start justify-center overflow-auto bg-black/55 p-5" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="flex w-full max-w-[560px] flex-col gap-3.5 rounded-[28px] bg-surface p-7">
+    <div className="fixed inset-0 z-20 flex overflow-auto bg-black/55 p-5" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="m-auto flex w-full max-w-[560px] flex-col gap-3.5 rounded-[28px] bg-surface p-7 text-left">
         <h2 className="font-heading text-2xl font-bold">Assign task to {first(person.name)}</h2>
         <label className="text-xs font-semibold text-muted">Task
           <input autoFocus className={`${field} mt-1.5 text-ink`} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Prepare poster for the HCI showcase" />

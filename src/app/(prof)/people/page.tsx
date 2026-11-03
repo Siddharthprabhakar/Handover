@@ -4,6 +4,7 @@ import { ActionBar, Avatar, Card, Chip, PageHeader, type Tone } from "@/componen
 import { CopyLink } from "@/components/CopyLink";
 import { InvitePerson } from "@/components/InvitePerson";
 import { LoadDemo } from "@/components/LoadDemo";
+import { ProgramSelect } from "@/components/ProgramSelect";
 import { WEEK, fmtDate, initials, loadLab } from "@/lib/lab";
 
 export const dynamic = "force-dynamic";
@@ -32,7 +33,7 @@ export default async function People() {
           else if (overtimeNow.has(p.id)) status = { label: "Overtime", tone: "crimson" };
           return (
             <div key={p.id} className="grid grid-cols-[220px_1fr_110px_150px_270px] items-center gap-3 border-t border-line py-3.5">
-              <span className="flex items-center gap-3"><Avatar initials={initials(p.name)} /><span><b className="block text-sm font-semibold">{p.name}</b><span className="text-xs text-muted">{p.email}</span></span></span>
+              <span className="flex items-center gap-3"><Avatar initials={initials(p.name)} /><span><b className="block text-sm font-semibold">{p.name}</b><span className="text-xs text-muted">{p.email}</span><ProgramSelect personId={p.id} value={p.program ?? null} /></span></span>
               <span className="text-[13px] leading-snug">{lab.projectsOf(p.id).join(", ")}</span>
               <span>{c?.submitted_at ? <span className="text-[13px]">{fmtDate(c.submitted_at)}</span> : <Chip tone="warn">Missing</Chip>}</span>
               <span><Chip tone={status.tone}>{status.label}</Chip></span>

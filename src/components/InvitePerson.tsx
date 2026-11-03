@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PROGRAMS } from "@/lib/programs";
 
 const field = "w-full rounded-xl bg-bg px-3.5 py-2.5 text-sm outline-none focus:ring-2 focus:ring-crimson/30";
 
@@ -10,6 +11,7 @@ export function InvitePerson({ label = "Invite person" }: { label?: string }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [program, setProgram] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState<{ name: string; emailed: boolean; note?: string } | null>(null);
@@ -20,13 +22,14 @@ export function InvitePerson({ label = "Invite person" }: { label?: string }) {
     setError("");
     setName("");
     setEmail("");
+    setProgram("");
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError("");
-    const res = await fetch("/api/people", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, email }) });
+    const res = await fetch("/api/people", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, email, program: program || null }) });
     const body = await res.json().catch(() => ({}));
     setBusy(false);
     if (!res.ok) return setError(body.error ?? "Could not add this person");
@@ -60,6 +63,12 @@ export function InvitePerson({ label = "Invite person" }: { label?: string }) {
                 </label>
                 <label className="text-xs font-semibold text-muted">Email
                   <input type="email" required className={`${field} mt-1.5 text-ink`} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ana@university.edu" />
+                </label>
+                <label className="text-xs font-semibold text-muted">Program (optional)
+                  <select className={`${field} mt-1.5 text-ink`} value={program} onChange={(e) => setProgram(e.target.value)}>
+                    <option value="">Not sure yet</option>
+                    {PROGRAMS.map((p) => <option key={p} value={p}>{p}</option>)}
+                  </select>
                 </label>
                 {error && <p className="text-[13px] text-crimson">{error}</p>}
                 <div className="flex gap-2.5">

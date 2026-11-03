@@ -4,7 +4,7 @@ import { heuristicParse } from "./checkin";
 export type Lab = { id: string; name: string; created_at: string };
 export type Person = {
   id: string; lab_id: string; auth_user_id: string | null; invited_at: string | null; name: string; email: string; role: "professor" | "ra";
-  weekly_hours: number; max_tasks: number; status: "active" | "leaving"; leaving_on: string | null;
+  weekly_hours: number; max_tasks: number; status: "active" | "leaving"; leaving_on: string | null; program?: string | null;
 };
 export type Project = {
   id: string; lab_id: string; name: string; kind: "lab" | "thesis"; goal: string | null;

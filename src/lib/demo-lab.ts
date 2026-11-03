@@ -18,12 +18,12 @@ const addDays = (iso: string, n: number) => {
 
 // All names are made up. The .invalid addresses can never receive mail; sendMail refuses them.
 const PEOPLE = [
-  { name: "Ana Kim", project: WAY },
-  { name: "Ben Okafor", project: WAY },
-  { name: "Chloe Martin", project: WAY },
-  { name: "Emi Tanaka", project: WAY },
-  { name: "Farah Ali", project: WAY },
-  { name: "Dev Patel", project: THESIS },
+  { name: "Ana Kim", project: WAY, program: "PhD student" },
+  { name: "Ben Okafor", project: WAY, program: "Master's student" },
+  { name: "Chloe Martin", project: WAY, program: "PhD student" },
+  { name: "Emi Tanaka", project: WAY, program: "Undergraduate" },
+  { name: "Farah Ali", project: WAY, program: "Master's student" },
+  { name: "Dev Patel", project: THESIS, program: "Master's student" },
 ];
 
 type Said = { challenges: string; plans: string; support?: string; needsTasks?: boolean; done?: string[] };
@@ -60,9 +60,9 @@ export async function loadDemoLab(labId: string): Promise<boolean> {
   await addSamples(labId);
   const projects = new Map((await list("projects", { col: "lab_id", eq: labId })).map((p) => [p.name, p]));
   const ids = new Map<string, string>();
-  for (const { name, project } of PEOPLE) {
+  for (const { name, project, program } of PEOPLE) {
     const email = `${name.toLowerCase().replace(/\s+/g, ".")}@demo.invalid`;
-    const row = await insert("people", { lab_id: labId, auth_user_id: null, invited_at: new Date().toISOString(), name, email, role: "ra", weekly_hours: 10, max_tasks: 5, status: "active", leaving_on: null });
+    const row = await insert("people", { lab_id: labId, auth_user_id: null, invited_at: new Date().toISOString(), name, email, role: "ra", weekly_hours: 10, max_tasks: 5, status: "active", leaving_on: null, program });
     ids.set(name, row.id);
     await insert("project_members", { project_id: projects.get(project)!.id, person_id: row.id });
   }
