@@ -29,7 +29,7 @@ export default async function Projects({ searchParams }: PageProps<"/projects">)
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
         {shown.map((p) => {
           const people = lab.members.filter((m) => m.project_id === p.id).map((m) => lab.byId.get(m.person_id)!);
           const blockers = openBlockers(p.id);

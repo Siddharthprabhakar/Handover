@@ -60,7 +60,7 @@ export default async function LabOverview() {
         </Card>
       </div>
 
-      <div className="grid items-start gap-4 lg:grid-cols-3">
+      <div className="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
         <div className="flex flex-col gap-4">
           <DigestCard key={saved?.text ?? digest.summary} initialText={saved?.text ?? digest.summary} initialShared={Boolean(saved?.shared_at)} />
           <Card>
