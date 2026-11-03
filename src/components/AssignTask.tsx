@@ -94,6 +94,13 @@ function Modal({ personId, loads, projects, onClose }: { personId: string; loads
           </div>
         )}
 
+        {fit.kind === "hardcap" && (
+          <div className="rounded-2xl bg-warn-soft p-4">
+            <b className="mb-1 block text-[13px] text-warn">Over the hard maximum</b>
+            <span className="text-sm leading-relaxed">{fit.detail} Give the task to someone else, or make it smaller.</span>
+          </div>
+        )}
+
         {fit.kind === "cap" && (
           <>
             <div className="rounded-2xl bg-warn-soft p-4">
@@ -129,7 +136,7 @@ function Modal({ personId, loads, projects, onClose }: { personId: string; loads
 
         {error && <p className="text-[13px] text-crimson">{error}</p>}
         <div className="flex gap-2.5">
-          <button type="button" onClick={submit} disabled={busy || !baseOk || fit.kind === "recovery" || (fit.kind === "cap" && !(ot && otValid))} className="rounded-full bg-dark px-[18px] py-2.5 text-sm font-semibold text-white disabled:opacity-40">
+          <button type="button" onClick={submit} disabled={busy || !baseOk || fit.kind === "recovery" || fit.kind === "hardcap" || (fit.kind === "cap" && !(ot && otValid))} className="rounded-full bg-dark px-[18px] py-2.5 text-sm font-semibold text-white disabled:opacity-40">
             {busy ? "Saving…" : fit.kind === "cap" ? "Start overtime & assign" : "Assign"}
           </button>
           <button type="button" onClick={onClose} className="rounded-full border border-line px-[18px] py-2.5 text-sm font-semibold">Cancel</button>

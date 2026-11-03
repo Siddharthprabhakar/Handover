@@ -9,6 +9,7 @@ export type PlanData = { phases: { name: string; tasks: PlanTask[] }[] };
 
 export const MAX_OVERTIME_DAYS = 14;
 export const RECOVERY_DAYS = 7;
+export const HARD_MAX_HOURS = 20; // no one goes past this in a week, not even on overtime
 
 export const addDays = (iso: string, n: number) => new Date(Date.parse(`${iso}T00:00:00Z`) + n * 86_400_000).toISOString().slice(0, 10);
 export const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
@@ -22,7 +23,7 @@ export function windowState(ot: Window[], today = TODAY): { kind: "overtime" | "
   return { kind: "none" };
 }
 
-export type Fit = { ok: boolean; kind: "ok" | "overtime" | "cap" | "recovery"; detail: string; tasks: number; hours: number };
+export type Fit = { ok: boolean; kind: "ok" | "overtime" | "cap" | "recovery" | "hardcap"; detail: string; tasks: number; hours: number };
 
 /**
  * Can this person take `extraTasks` more tasks worth `extraHours` hours?
@@ -34,7 +35,8 @@ export function fits(l: Load, extraTasks: number, extraHours: number, today = TO
   const hours = l.hours + extraHours;
   const st = windowState(l.ot, today);
   if (st.kind === "recovery") return { ok: false, kind: "recovery", detail: `${first} is in a recovery week until ${fmtDate(st.until!)}. New tasks are paused.`, tasks, hours };
-  if (st.kind === "overtime") return { ok: true, kind: "overtime", detail: `${first} is on overtime until ${fmtDate(st.until!)}.`, tasks, hours };
+  if (hours > HARD_MAX_HOURS) return { ok: false, kind: "hardcap", detail: `${first} would reach ${hours} hours. The hard maximum is ${HARD_MAX_HOURS} hours a week, even on overtime.`, tasks, hours };
+  if (st.kind === "overtime") return { ok: true, kind: "overtime", detail: `${first} is on overtime until ${fmtDate(st.until!)}. This brings ${first} to ${hours} of ${l.weeklyHours} hours (hard maximum ${HARD_MAX_HOURS}).`, tasks, hours };
   if (tasks > l.maxTasks || hours > l.weeklyHours) {
     return { ok: false, kind: "cap", detail: `${first} would reach ${hours} of ${l.weeklyHours} hours and ${tasks} of ${l.maxTasks} tasks.`, tasks, hours };
   }

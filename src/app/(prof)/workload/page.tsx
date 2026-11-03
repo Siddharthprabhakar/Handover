@@ -1,5 +1,6 @@
 import { requireProfessor } from "@/lib/session";
 import { AssignTask } from "@/components/AssignTask";
+import { PersonTasks } from "@/components/PersonTasks";
 import { Avatar, Card, Chip, PageHeader, type Tone } from "@/components/ui";
 import { fmtDate } from "@/lib/format";
 import { initials, loadLab } from "@/lib/lab";
@@ -12,6 +13,7 @@ export default async function Workload() {
   const session = await requireProfessor();
   const lab = await loadLab(session.labId);
   const loads = loadsOf(lab);
+  const people = lab.ras.map((r) => ({ id: r.id, name: r.name }));
   const projects = lab.projects.map((p) => ({ id: p.id, name: p.name, phases: p.phase_template }));
 
   return (
@@ -20,7 +22,7 @@ export default async function Workload() {
       <div className="grid items-start gap-4 lg:grid-cols-[1fr_320px]">
         <Card className="overflow-x-auto !p-6">
         <div className="min-w-[760px]">
-          <div className="grid grid-cols-[200px_160px_90px_1fr_110px] gap-3 py-2 text-xs font-semibold text-muted">
+          <div className="grid grid-cols-[200px_160px_90px_1fr_220px] gap-3 py-2 text-xs font-semibold text-muted">
             <span>Person</span><span>Open tasks</span><span>Hours</span><span>Status</span><span />
           </div>
           {loads.map((l) => {
@@ -31,7 +33,7 @@ export default async function Workload() {
             else if (st.kind === "recovery") chip = { label: `Recovery until ${fmtDate(st.until!)}`, tone: "warn" };
             else if (full) chip = { label: "At limit", tone: "warn" };
             return (
-              <div key={l.id} className="grid grid-cols-[200px_160px_90px_1fr_110px] items-center gap-3 border-t border-line py-3.5">
+              <div key={l.id} className="grid grid-cols-[200px_160px_90px_1fr_220px] items-center gap-3 border-t border-line py-3.5">
                 <span className="flex items-center gap-2.5"><Avatar initials={initials(l.name)} /><b className="text-sm font-semibold">{l.name}</b></span>
                 <span className="flex items-center gap-2">
                   <span className="h-2 w-[70px] overflow-hidden rounded-full bg-bg"><i className={`block h-full rounded-full ${l.tasks >= l.maxTasks ? "bg-warn" : "bg-ok"}`} style={{ width: `${Math.min(100, (l.tasks / l.maxTasks) * 100)}%` }} /></span>
@@ -39,7 +41,10 @@ export default async function Workload() {
                 </span>
                 <span className="text-[13px]">{l.hours} / {l.weeklyHours} h</span>
                 <span><Chip tone={chip.tone}>{chip.label}</Chip></span>
-                <span className="text-right"><AssignTask personId={l.id} loads={loads} projects={projects} /></span>
+                <span className="flex justify-end gap-2">
+                  <PersonTasks person={{ id: l.id, name: l.name }} people={people} tasks={lab.tasks.filter((t) => t.assignee === l.id && t.status === "open").map((t) => { const pr = lab.projects.find((x) => x.id === t.project_id)!; return { id: t.id, title: t.title, project: pr.name, phase: pr.phase_template[t.phase - 1] ?? "", hours: Number(t.est_hours) }; })} />
+                  <AssignTask personId={l.id} loads={loads} projects={projects} />
+                </span>
               </div>
             );
           })}

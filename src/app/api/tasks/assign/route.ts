@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   if (!lab.projects.some((p) => p.id === projectId)) return Response.json({ error: "Project not found" }, { status: 404 });
 
   let fit = fits(person, 1, hours);
-  if (fit.kind === "recovery") return err(fit.detail, { kind: "recovery" });
+  if (fit.kind === "recovery" || fit.kind === "hardcap") return err(fit.detail, { kind: fit.kind, others: suggestOthers(loads, personId, hours).map((o) => o.name) });
 
   if (!fit.ok) {
     if (!overtime) return err(fit.detail, { kind: "cap", others: suggestOthers(loads, personId, hours).map((o) => o.name) });
