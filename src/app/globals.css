@@ -42,3 +42,17 @@ body {
   color: var(--ink);
   font-family: var(--font-inter), system-ui, sans-serif;
 }
+
+/* Interaction feedback. Tailwind v4 leaves buttons with the plain arrow cursor and no hover state, so nothing looked clickable. */
+button, [role="button"], select, summary, a[href], label:has(input[type="file"]) { cursor: pointer; }
+button:disabled, select:disabled { cursor: not-allowed; }
+button, a[href], select { transition: filter 120ms, background-color 120ms, border-color 120ms, box-shadow 160ms, transform 100ms; }
+button:not(:disabled):hover, a[href].rounded-full:hover, label.rounded-full:hover, a[href]:hover > .rounded-full { filter: brightness(0.92); }
+button:not(:disabled):active, a[href].rounded-full:active { transform: scale(0.97); }
+select:not(:disabled):hover { background-color: color-mix(in srgb, var(--ink) 6%, var(--bg)); }
+:where(button, a[href], select, input, textarea, summary):focus-visible { outline: 2px solid var(--crimson); outline-offset: 2px; }
+
+/* cards and tiles that are links lift a little */
+a[href] > .rounded-3xl, a[href][class*="rounded-[18px]"] { transition: transform 140ms, box-shadow 160ms; }
+a[href] > .rounded-3xl:hover, a[href][class*="rounded-[18px]"]:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgb(27 26 31 / 0.10); }
+a[href][class*="border-dashed"]:hover { background: var(--crimson-soft); border-color: var(--crimson); }
