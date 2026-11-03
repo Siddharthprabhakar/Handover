@@ -71,7 +71,7 @@ export function Btn({ href, children, kind = "out", small = false }: { href: str
 
 export function PageHeader({ title, sub, back, right }: { title: string; sub?: string; back?: { href: string; label: string }; right?: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center gap-3 px-2 py-1">
+    <div className="flex flex-wrap items-center gap-3 px-2 py-1 lg:pr-16">
       <div className="flex-1">
         {back && (
           <Link href={back.href} className="text-[13px] font-semibold text-crimson">

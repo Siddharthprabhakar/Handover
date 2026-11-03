@@ -51,7 +51,7 @@ export default async function LabOverview() {
   const attention = digest.stuck.length + digest.missing.length + digest.needs_tasks.length;
 
   return (
-    <>
+    <div className="flex flex-col gap-4 xl:h-[calc(100vh-2rem)]">
       <PageHeader title={`Good morning, ${session.name}`} sub={`Week of ${fmtDate(WEEK)} · ${submitted} of ${lab.ras.length} check-ins in`} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -84,23 +84,23 @@ export default async function LabOverview() {
         </Card>
       </div>
 
-      <div className="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
-        <div className="flex flex-col gap-4">
+      <div className="grid gap-4 lg:grid-cols-2 xl:min-h-0 xl:flex-1 xl:grid-cols-3">
+        <div className="flex flex-col gap-4 xl:min-h-0 xl:overflow-y-auto">
           <Suspense fallback={<DigestSkeleton />}><MuseDigestCard lab={lab} saved={saved} /></Suspense>
-          <Card>
+          <Card className="xl:flex-1">
             <h2 className="mb-2 font-heading text-lg font-bold">Common support requests</h2>
             {digest.support.length === 0 && <p className="text-sm text-muted">Nothing requested this week.</p>}
             {digest.support.map((s) => <div key={s} className="border-t border-line py-2.5 text-sm first:border-t-0">{s}</div>)}
           </Card>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 xl:min-h-0">
           <div className="flex items-baseline gap-2 px-1">
             <h2 className="font-heading text-xl font-bold">Needs attention</h2>
             <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson">{attention}</span>
           </div>
           {/* long lists scroll inside the column so the rest of the page keeps its shape */}
-          <div className="flex flex-col gap-3 overflow-y-auto pr-1 xl:max-h-[calc(100vh-27rem)] xl:min-h-[280px]">
+          <div className="flex flex-col gap-3 pr-1 xl:min-h-0 xl:flex-1 xl:overflow-y-auto">
           {digest.stuck.map((s) => {
             const p = byName.get(s.person);
             return (
@@ -158,10 +158,10 @@ export default async function LabOverview() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 xl:min-h-0 xl:overflow-y-auto">
           <WorkloadCard rows={lab.ras.map((r) => ({ id: r.id, name: r.name, ...lab.load(r.id), maxTasks: r.max_tasks, weeklyHours: r.weekly_hours }))} />
           {activeOvertime.length > 0 && (
-            <Card>
+            <Card className="xl:flex-1">
               <h2 className="mb-2 font-heading text-lg font-bold">Overtime &amp; recovery</h2>
               {activeOvertime.map((o) => (
                 <div key={o.id}>
@@ -175,6 +175,6 @@ export default async function LabOverview() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

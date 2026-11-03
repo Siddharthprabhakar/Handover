@@ -157,3 +157,14 @@ function Manage({ meetings, projects, feedUrl, onClose }: Pick<Props, "meetings"
     </div>
   );
 }
+
+/** A button that opens the same add-and-subscribe dialog, for the Profile page. */
+export function ManageMeetingsButton({ meetings, projects, feedUrl, label }: Pick<Props, "meetings" | "projects" | "feedUrl"> & { label: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="rounded-full bg-crimson px-[18px] py-2.5 text-sm font-semibold text-white">{label}</button>
+      {open && <Manage meetings={meetings} projects={projects} feedUrl={feedUrl} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
