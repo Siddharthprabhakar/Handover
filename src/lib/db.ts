@@ -69,3 +69,13 @@ export async function remove<K extends TableName>(t: K, id: string): Promise<voi
   const { error } = await sb.from(t).delete().eq("id", id);
   if (error) throw new Error(`remove ${t}: ${error.message}`);
 }
+
+/** A professor and their lab's name in one round trip (used on every page load). */
+export async function personWithLab(authUserId: string): Promise<{ person: Tables["people"][number]; labName: string } | null> {
+  if (!sb) return null;
+  const { data, error } = await sb.from("people").select("*, labs(name)").eq("auth_user_id", authUserId).maybeSingle();
+  if (error) throw new Error(`personWithLab: ${error.message}`);
+  if (!data) return null;
+  const { labs, ...person } = data as Tables["people"][number] & { labs: { name: string } | null };
+  return { person, labName: labs?.name ?? "Your lab" };
+}

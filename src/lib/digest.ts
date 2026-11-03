@@ -33,7 +33,7 @@ function heuristicDigest(rows: Row[], blockers: Blocker[]): DigestResult {
   };
 }
 
-export async function getDigest(lab: Lab): Promise<DigestResult> {
+function buildInputs(lab: Lab): { rows: Row[]; blockers: Blocker[] } {
   const rows: Row[] = lab.ras.map((p) => {
     const c = lab.weekCheckins.find((x) => x.person_id === p.id);
     const l = lab.load(p.id);
@@ -51,6 +51,20 @@ export async function getDigest(lab: Lab): Promise<DigestResult> {
     project: lab.projects.find((p) => p.id === b.project_id)?.name ?? "",
     quote: b.quote,
   }));
+  return { rows, blockers };
+}
+
+/** Instant, rule-based digest from the lab data. Used for the stats and the attention list. */
+export function ruleDigest(lab: Lab): DigestResult {
+  const { rows, blockers } = buildInputs(lab);
+  return heuristicDigest(rows, blockers);
+}
+
+/** The digest in Muse's words. Slow when Muse is live, so pages stream it behind a Suspense boundary. */
+export async function getDigest(lab: Lab): Promise<DigestResult> {
+  const { rows, blockers } = buildInputs(lab);
+  // nothing to summarise yet: skip the model call
+  if (!rows.some((r) => r.checkin) && blockers.length === 0) return heuristicDigest(rows, blockers);
   const key = JSON.stringify([rows, blockers]);
   const hit = cache.get(key);
   if (hit) return hit;

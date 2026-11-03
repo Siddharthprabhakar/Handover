@@ -1,10 +1,12 @@
+import { after } from "next/server";
 import { z } from "zod";
-import { insert, list, update } from "@/lib/db";
-import { composeText, groundedQuotes, heuristicParse } from "@/lib/checkin";
-import { museJson } from "@/lib/muse";
+import { insert, list, remove, update } from "@/lib/db";
+import { composeText, groundedQuotes, heuristicParse, type Parsed } from "@/lib/checkin";
+import { museJson, museMode } from "@/lib/muse";
 import { checkinPrompt } from "@/lib/prompts";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // the Muse pass runs after the response is sent
 
 const Body = z.object({
   token: z.string().min(1),
@@ -45,24 +47,43 @@ export async function POST(req: Request) {
   const text = composeText(filled.map((a) => ({ projectName: a.project!.name, challenges: a.challenges.trim(), plans: a.plans.trim(), support: a.support.trim(), needsTasks: a.needsTasks, done: a.done })));
   const info = mine.map((p) => ({ name: p.name, phase: p.current_phase }));
 
-  let parsed;
-  try {
-    parsed = groundedQuotes(await museJson("checkin", checkinPrompt(text, mine.map((p) => ({ name: p.name, phases: p.phase_template }))), heuristicParse(text, info)), text);
-  } catch (e) {
-    return Response.json({ error: e instanceof Error ? e.message : "Muse failed" }, { status: 502 });
-  }
-
-  // blockers become visible on the project journey; skip ones already open
-  const open = (await list("blockers", { col: "person_id", eq: checkin.person_id })).filter((b) => !b.resolved_at);
-  for (const p of parsed.projects) {
-    const project = mine.find((x) => x.name.toLowerCase() === p.project.toLowerCase());
-    if (!project) continue;
-    for (const b of p.blockers) {
-      if (open.some((o) => o.person_id === checkin.person_id && o.project_id === project.id && o.quote === b.quote)) continue;
-      await insert("blockers", { project_id: project.id, phase: p.phase ?? project.current_phase, person_id: checkin.person_id, quote: b.quote, opened_at: new Date().toISOString(), resolved_at: null });
+  // blockers become visible on the project journey; skip ones already open. Returns the ids it created.
+  async function saveBlockers(parsed: Parsed): Promise<string[]> {
+    const open = (await list("blockers", { col: "person_id", eq: checkin.person_id })).filter((b) => !b.resolved_at);
+    const created: string[] = [];
+    for (const p of parsed.projects) {
+      const project = mine.find((x) => x.name.toLowerCase() === p.project.toLowerCase());
+      if (!project) continue;
+      for (const b of p.blockers) {
+        if (open.some((o) => o.project_id === project.id && o.quote === b.quote)) continue;
+        const row = await insert("blockers", { project_id: project.id, phase: p.phase ?? project.current_phase, person_id: checkin.person_id, quote: b.quote, opened_at: new Date().toISOString(), resolved_at: null });
+        created.push(row.id);
+      }
     }
+    return created;
   }
 
-  await update("checkins", checkin.id, { raw: { text, fields: answers }, parsed, submitted_at: new Date().toISOString() });
-  return Response.json({ ok: true, parsed });
+  // 1. answer right away with the rule-based reading, so sending feels instant
+  const quick = groundedQuotes(heuristicParse(text, info), text);
+  const quickBlockers = await saveBlockers(quick);
+  await update("checkins", checkin.id, { raw: { text, fields: answers }, parsed: quick, submitted_at: new Date().toISOString() });
+
+  // 2. then let Muse read it properly, which takes several seconds, and swap in its version
+  if (museMode() === "live") {
+    after(async () => {
+      try {
+        const full = groundedQuotes(
+          await museJson("checkin", checkinPrompt(text, mine.map((p) => ({ name: p.name, phases: p.phase_template }))), quick),
+          text,
+        );
+        for (const id of quickBlockers) await remove("blockers", id);
+        await saveBlockers(full);
+        await update("checkins", checkin.id, { parsed: full });
+      } catch (e) {
+        console.error("Muse check-in pass failed; the rule-based reading stays:", e instanceof Error ? e.message : e);
+      }
+    });
+  }
+
+  return Response.json({ ok: true, parsed: quick });
 }

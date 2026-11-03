@@ -30,7 +30,9 @@ export async function proxy(request: NextRequest) {
   };
 
   const path = request.nextUrl.pathname;
-  const { data: { user } } = await supabase.auth.getUser();
+  // getClaims checks the token signature locally, with no round trip to Supabase on each click
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const user = claimsData?.claims ? { id: claimsData.claims.sub } : null;
   if (!user) return starts(path, OPEN) ? response : go(`/login?next=${encodeURIComponent(path)}`);
   if (starts(path, TOKEN_FLOWS)) return response;
 

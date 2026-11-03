@@ -1,8 +1,9 @@
 import { requireProfessor } from "@/lib/session";
 import { Avatar, Btn, Card, Chip, PageHeader } from "@/components/ui";
-import { DigestCard } from "@/components/DigestCard";
 import { ReminderButton } from "@/components/ReminderButton";
-import { getDigest } from "@/lib/digest";
+import { Suspense } from "react";
+import { DigestSkeleton, MuseDigestCard } from "@/components/DigestSlot";
+import { ruleDigest } from "@/lib/digest";
 import { WEEK, fmtDate, initials, loadLab } from "@/lib/lab";
 
 export const dynamic = "force-dynamic";
@@ -26,7 +27,7 @@ export default async function LabOverview() {
       </>
     );
   }
-  const digest = await getDigest(lab);
+  const digest = ruleDigest(lab);
   const byName = new Map(lab.people.map((p) => [p.name, p]));
   const submitted = lab.weekCheckins.filter((c) => c.submitted_at).length;
   const flagged = new Set([...digest.stuck.map((s) => s.person), ...digest.missing, ...digest.needs_tasks]);
@@ -80,7 +81,7 @@ export default async function LabOverview() {
 
       <div className="grid items-start gap-4 lg:grid-cols-2 xl:grid-cols-3">
         <div className="flex flex-col gap-4">
-          <DigestCard key={saved?.text ?? digest.summary} initialText={saved?.text ?? digest.summary} initialShared={Boolean(saved?.shared_at)} />
+          <Suspense fallback={<DigestSkeleton />}><MuseDigestCard lab={lab} saved={saved} /></Suspense>
           <Card>
             <h2 className="mb-2 font-heading text-lg font-bold">Common support requests</h2>
             {digest.support.length === 0 && <p className="text-sm text-muted">Nothing requested this week.</p>}

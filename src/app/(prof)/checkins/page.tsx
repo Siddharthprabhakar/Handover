@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ActionBar, Avatar, Card, Chip, PageHeader, type Tone } from "@/components/ui";
 import { ReminderButton } from "@/components/ReminderButton";
 import type { Parsed } from "@/lib/checkin";
-import { getDigest } from "@/lib/digest";
+import { Suspense } from "react";
+import { MuseDigestText } from "@/components/DigestSlot";
 import { WEEK, fmtDate, initials, loadLab } from "@/lib/lab";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,6 @@ export const dynamic = "force-dynamic";
 export default async function Checkins() {
   const session = await requireProfessor();
   const lab = await loadLab(session.labId);
-  const digest = await getDigest(lab);
   const shared = lab.digests.find((d) => d.week === WEEK);
   const submitted = lab.weekCheckins.filter((c) => c.submitted_at).length;
   const overtimeNow = new Set(lab.overtime.filter((o) => o.starts <= WEEK && o.ends >= WEEK).map((o) => o.person_id));
@@ -81,7 +81,7 @@ export default async function Checkins() {
               {shared?.shared_at && <Chip tone="ok">Shared with lab</Chip>}
             </div>
             <h2 className="font-heading text-xl font-bold">Weekly digest</h2>
-            <p className="text-sm leading-relaxed">{shared?.text ?? digest.summary}</p>
+            <Suspense fallback={<p className="text-sm text-white/70">Muse is reading this week&apos;s check-ins…</p>}><MuseDigestText lab={lab} text={shared?.text} /></Suspense>
           </Card>
         </div>
       </div>

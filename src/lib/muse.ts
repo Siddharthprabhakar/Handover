@@ -6,16 +6,19 @@ import { SYSTEM } from "./prompts";
 const BASE = process.env.MUSE_BASE_URL ?? "https://api.meta.ai/v1";
 const MODEL = process.env.MUSE_MODEL ?? "muse-spark-1.3";
 const KEY = process.env.MODEL_API_KEY;
+// Muse thinks before it answers, which takes several seconds. Our jobs are structured extraction, so keep that short.
+const EFFORT = process.env.MUSE_REASONING ?? "minimal";
 
 export const museMode = () => (process.env.MUSE_MOCK === "1" || !KEY ? "mock" : "live");
 
 async function chat(system: string, user: string): Promise<string> {
-  // OpenAI-compatible Chat Completions. Not yet verified against our key: see docs/BUILD_PLAN.md day-one checklist.
+  // OpenAI-compatible Chat Completions (verified live against the Meta Model API).
   const res = await fetch(`${BASE}/chat/completions`, {
     method: "POST",
     headers: { "content-type": "application/json", authorization: `Bearer ${KEY}` },
     body: JSON.stringify({
       model: MODEL,
+      reasoning_effort: EFFORT,
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
