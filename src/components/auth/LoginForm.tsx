@@ -24,7 +24,7 @@ export function LoginForm() {
       return setError(error.message === "Invalid login credentials" ? "That email and password do not match." : error.message);
     }
     // the proxy sends them on to 2FA setup or verification when needed
-    router.push(next && next.startsWith("/") ? next : "/");
+    router.push(next && /^\/(?![/\\])/.test(next) ? next : "/"); // one leading slash only: //host and /\host would leave the site
     router.refresh();
   }
 

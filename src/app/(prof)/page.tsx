@@ -130,13 +130,8 @@ export default async function LabOverview() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2 xl:flex-1 xl:grid-cols-3">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col [&>*]:flex-1">
           <Suspense fallback={<DigestSkeleton />}><MuseDigestCard lab={lab} saved={saved} /></Suspense>
-          <Card className="xl:flex-1">
-            <h2 className="mb-2 font-heading text-lg font-bold">Common support requests</h2>
-            {digest.support.length === 0 && <p className="text-sm text-muted">Nothing requested this week.</p>}
-            {digest.support.map((s) => <div key={s} className="border-t border-line py-2.5 text-sm first:border-t-0">{s}</div>)}
-          </Card>
         </div>
 
         <div className="flex flex-col gap-3">

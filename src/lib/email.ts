@@ -7,7 +7,13 @@ const g = globalThis as { __outbox?: OutboxItem[] };
 const outbox = (g.__outbox ??= []);
 export const getOutbox = (labId: string) => outbox.filter((m) => m.labId === labId).reverse();
 
-export const appUrl = () => process.env.APP_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+// Links in emails must open for the person who gets them. On Vercel, a localhost APP_URL left over from local setup is ignored in favour of the site address.
+export const appUrl = () => {
+  const set = process.env.APP_URL;
+  if (set && !(process.env.VERCEL && /localhost|127.0.0.1/.test(set))) return set;
+  const host = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+  return host ? `https://${host}` : "http://localhost:3000";
+};
 
 const gmail = () =>
   process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD

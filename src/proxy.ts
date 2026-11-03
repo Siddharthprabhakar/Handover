@@ -11,7 +11,11 @@ const starts = (path: string, list: string[]) => list.some((p) => (p.endsWith("/
 export async function proxy(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anon) return NextResponse.next(); // demo mode: no accounts
+  if (!url || !anon || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    // on Vercel a missing variable must be loud, never a silent switch to the in-memory sample lab
+    if (process.env.VERCEL) return new NextResponse("Handover is not configured: set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY in Vercel, then redeploy.", { status: 503 });
+    return NextResponse.next(); // local demo mode: no accounts
+  }
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, anon, {

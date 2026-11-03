@@ -48,6 +48,16 @@ async function chat(system: string, user: string, job: JobName): Promise<string>
 
 const extractJson = (s: string) => JSON.parse(s.replace(/^```(?:json)?\s*|\s*```$/g, "").trim());
 
+// shortcut: counted per server instance, so the real ceiling is this number times the instances; move to a table if traffic grows.
+const CALLS_PER_HOUR = Number(process.env.MUSE_CALLS_PER_HOUR ?? 150);
+const usage = globalThis as { __museCalls?: { hour: number; n: number } };
+/** True while this hour's model budget (Muse jobs and transcriptions) has room. Protects the free credits from loops and curious clicking. */
+export function museAllowed() {
+  const hour = Math.floor(Date.now() / 3_600_000);
+  const c = (usage.__museCalls = usage.__museCalls?.hour === hour ? usage.__museCalls : { hour, n: 0 });
+  return ++c.n <= CALLS_PER_HOUR;
+}
+
 /** Run one Muse job and return validated JSON. Retries once on bad output. */
 export async function museJson<J extends JobName>(
   job: J,
@@ -57,6 +67,10 @@ export async function museJson<J extends JobName>(
   type R = z.infer<(typeof schemas)[J]>;
   const schema = schemas[job] as z.ZodType;
   if (museMode() === "mock") return schema.parse(fallback ?? MOCK[job]) as R;
+  if (!museAllowed()) {
+    if (fallback) return schema.parse(fallback) as R; // the rule-based answer keeps the page working
+    throw new Error("Muse has reached its hourly limit. Try again in a few minutes.");
+  }
   let prompt = user;
   let lastError = "";
   for (let attempt = 0; attempt < 2; attempt++) {

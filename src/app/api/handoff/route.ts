@@ -64,7 +64,7 @@ export async function POST(req: Request) {
       await sendMail(handoffEmail({ to: person.email, name: person.name, link: `${appUrl()}/handoff/${existing.token}`, project: lab.projects.find((p) => p.id === projectId)?.name ?? "your project", professor: session.name, replyTo: session.email }), session.labId);
       return Response.json({ ok: true, token: existing.token });
     }
-    const token = `hf-${crypto.randomUUID().slice(0, 8)}`;
+    const token = `hf-${crypto.randomUUID().replace(/-/g, "")}`;
     await insert("handoffs", { person_id: b.personId, project_id: projectId, questions: b.questions, thanks: b.thanks, answers: {}, brief: null, token, status: "sent" });
     await update("people", b.personId, { status: "leaving" });
     await sendMail(handoffEmail({ to: person.email, name: person.name, link: `${appUrl()}/handoff/${token}`, project: lab.projects.find((p) => p.id === projectId)?.name ?? "your project", professor: session.name, replyTo: session.email }), session.labId);

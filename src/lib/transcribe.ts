@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { museConfig } from "./muse";
+import { museAllowed, museConfig } from "./muse";
 import type { Turn } from "./seed";
 
 // Longest recording we accept, in seconds. Meta's limit is 10 minutes; Gemini takes audio inline in the request, so we stay shorter.
@@ -14,6 +14,7 @@ const Turns = z.object({ turns: z.array(z.object({ speaker: z.string().nullable(
 /** Speech to text for a 16 kHz mono WAV. Meta's Voice Transcribe when Meta is the provider, otherwise any OpenAI-compatible model that accepts audio (Gemini). */
 export async function transcribe(wav: ArrayBuffer, diarize: boolean): Promise<Turn[]> {
   if (!KEY || process.env.MUSE_MOCK === "1") throw new Error("Transcription needs a live model key (MUSE_MOCK=0)");
+  if (!museAllowed()) throw new Error("Transcription is paused for a few minutes (hourly limit reached). Try again soon.");
   return BASE.includes("api.meta.ai") ? metaAsr(wav, diarize) : chatAsr(wav, diarize);
 }
 
