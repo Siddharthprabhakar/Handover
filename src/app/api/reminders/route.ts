@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getSession } from "@/lib/session";
 import { remindUnsubmitted } from "@/lib/reminders";
 
 export const dynamic = "force-dynamic";
@@ -9,5 +10,7 @@ const Body = z.object({ personId: z.string().optional() });
 export async function POST(req: Request) {
   const body = Body.safeParse(await req.json().catch(() => ({})));
   if (!body.success) return Response.json({ error: "Invalid request" }, { status: 400 });
-  return Response.json({ ok: true, sent: await remindUnsubmitted(body.data.personId) });
+  const session = await getSession();
+  if (!session) return Response.json({ error: "Sign in required" }, { status: 401 });
+  return Response.json({ ok: true, sent: await remindUnsubmitted(session.labId, body.data.personId) });
 }

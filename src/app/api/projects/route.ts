@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getSession } from "@/lib/session";
 import { insert } from "@/lib/db";
 import { loadLab } from "@/lib/lab";
 import { phaseOneCheck } from "@/lib/limits";
@@ -23,7 +24,9 @@ export async function POST(req: Request) {
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return Response.json({ error: "Invalid project" }, { status: 400 });
   const { kind, name, goal, deadline, people, plan } = body.data;
-  const lab = await loadLab();
+  const session = await getSession();
+  if (!session) return Response.json({ error: "Sign in required" }, { status: 401 });
+  const lab = await loadLab(session.labId);
 
   // the workload rule is enforced here, not only in the preview
   const over = phaseOneCheck(plan, loadsOf(lab));
@@ -35,8 +38,8 @@ export async function POST(req: Request) {
   }
 
   const byName = new Map(lab.ras.map((p) => [p.name, p.id]));
-  const project = await insert("projects", { name, kind, goal: goal || null, phase_template: plan.phases.map((p) => p.name), current_phase: 1, deadline: deadline || null });
-  const memberIds = new Set([...people.filter((id) => lab.byId.has(id)), ...plan.phases.flatMap((p) => p.tasks.map((t) => (t.owner ? byName.get(t.owner) : undefined)).filter((x): x is string => Boolean(x)))]);
+  const project = await insert("projects", { lab_id: session.labId, name, kind, goal: goal || null, phase_template: plan.phases.map((p) => p.name), current_phase: 1, deadline: deadline || null });
+  const memberIds = new Set([...people.filter((id) => lab.ras.some((r) => r.id === id)), ...plan.phases.flatMap((p) => p.tasks.map((t) => (t.owner ? byName.get(t.owner) : undefined)).filter((x): x is string => Boolean(x)))]);
   for (const person_id of memberIds) await insert("project_members", { project_id: project.id, person_id });
   for (const [i, phase] of plan.phases.entries()) {
     for (const t of phase.tasks) {

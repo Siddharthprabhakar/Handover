@@ -1,18 +1,16 @@
-import { list, usingSupabase } from "@/lib/db";
 import { museJson, museMode } from "@/lib/muse";
 import { checkinPrompt } from "@/lib/prompts";
+import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
-// Dev check for stage 1: reads seed data, runs one Muse job, returns the result.
+// Signed-in check that Muse answers with valid JSON. Prints the mode (live or mock), never any key.
 export async function GET() {
-  const [people, projects, checkins] = await Promise.all([list("people"), list("projects"), list("checkins")]);
-  const ben = people.find((p) => p.name === "Ben Kaplan")!;
-  const text = checkins.find((c) => c.person_id === ben.id)?.raw?.text ?? "";
-  const wayfinding = projects.find((p) => p.name === "Campus Wayfinding Study")!;
+  if (!(await getSession())) return Response.json({ error: "Sign in required" }, { status: 401 });
+  const text = "Project: Test Study\nChallenges: I emailed 14 people and only 2 replied. I am not sure if the flyer is the problem.\nPlans for next week: Re-post the flyer.";
   try {
-    const result = await museJson("checkin", checkinPrompt(text, [{ name: wayfinding.name, phases: wayfinding.phase_template }]));
-    return Response.json({ mode: museMode(), db: usingSupabase ? "supabase" : "memory", people: people.length, projects: projects.length, result });
+    const result = await museJson("checkin", checkinPrompt(text, [{ name: "Test Study", phases: ["Plan", "Recruit", "Interview", "Synthesize", "Design", "Test", "Report"] }]));
+    return Response.json({ mode: museMode(), result });
   } catch (e) {
     return Response.json({ mode: museMode(), error: e instanceof Error ? e.message : String(e) }, { status: 502 });
   }

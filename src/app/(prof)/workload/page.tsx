@@ -1,3 +1,4 @@
+import { requireProfessor } from "@/lib/session";
 import { AssignTask } from "@/components/AssignTask";
 import { Avatar, Card, Chip, PageHeader, type Tone } from "@/components/ui";
 import { fmtDate } from "@/lib/format";
@@ -8,7 +9,8 @@ import { loadsOf } from "@/lib/loads";
 export const dynamic = "force-dynamic";
 
 export default async function Workload() {
-  const lab = await loadLab();
+  const session = await requireProfessor();
+  const lab = await loadLab(session.labId);
   const loads = loadsOf(lab);
   const projects = lab.projects.map((p) => ({ id: p.id, name: p.name, phases: p.phase_template }));
 

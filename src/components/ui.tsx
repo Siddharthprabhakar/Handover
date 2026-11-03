@@ -80,7 +80,6 @@ export function PageHeader({ title, sub, back, right }: { title: string; sub?: s
         {sub && <p className="text-sm text-muted">{sub}</p>}
       </div>
       {right}
-      <Avatar initials="DR" size={36} dark />
     </div>
   );
 }

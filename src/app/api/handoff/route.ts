@@ -2,6 +2,7 @@ import { z } from "zod";
 import { insert, list, update } from "@/lib/db";
 import { buildContext, heuristicBrief, heuristicQuestions, type HQuestion } from "@/lib/handoff";
 import { loadLab } from "@/lib/lab";
+import { getSession } from "@/lib/session";
 import { museJson } from "@/lib/muse";
 import { briefPrompt, questionsPrompt } from "@/lib/prompts";
 import { appUrl, sendMail } from "@/lib/email";
@@ -24,8 +25,19 @@ export async function POST(req: Request) {
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return err("Invalid request");
   const b = body.data;
-  const lab = await loadLab();
-  const handoffs = await list("handoffs");
+  if (b.action === "answers") {
+    // the student's personal link is the only credential here
+    const [h] = await list("handoffs", { col: "token", eq: b.token });
+    if (!h) return err("Link not found", 404);
+    if (h.status === "saved") return err("This handoff is already saved", 409);
+    await update("handoffs", h.id, { answers: b.answers, status: b.submit ? "answered" : "sent", ...(b.submit ? { brief: null } : {}) });
+    return Response.json({ ok: true });
+  }
+
+  const session = await getSession();
+  if (!session) return err("Sign in required", 401);
+  const lab = await loadLab(session.labId);
+  const handoffs = lab.handoffs;
 
   if (b.action === "questions") {
     if (!lab.byId.has(b.personId)) return err("Person not found", 404);
@@ -49,22 +61,14 @@ export async function POST(req: Request) {
     if (!projectId) return err("This person is not on a project");
     if (existing) {
       await update("handoffs", existing.id, { questions: b.questions, thanks: b.thanks, status: "sent" });
-      await sendMail(handoffEmail({ to: person.email, name: person.name, link: `${appUrl()}/handoff/${existing.token}`, project: lab.projects.find((p) => p.id === projectId)?.name ?? "your project" }));
+      await sendMail(handoffEmail({ to: person.email, name: person.name, link: `${appUrl()}/handoff/${existing.token}`, project: lab.projects.find((p) => p.id === projectId)?.name ?? "your project", professor: session.name, replyTo: session.email }), session.labId);
       return Response.json({ ok: true, token: existing.token });
     }
     const token = `hf-${crypto.randomUUID().slice(0, 8)}`;
     await insert("handoffs", { person_id: b.personId, project_id: projectId, questions: b.questions, thanks: b.thanks, answers: {}, brief: null, token, status: "sent" });
     await update("people", b.personId, { status: "leaving" });
-    await sendMail(handoffEmail({ to: person.email, name: person.name, link: `${appUrl()}/handoff/${token}`, project: lab.projects.find((p) => p.id === projectId)?.name ?? "your project" }));
+    await sendMail(handoffEmail({ to: person.email, name: person.name, link: `${appUrl()}/handoff/${token}`, project: lab.projects.find((p) => p.id === projectId)?.name ?? "your project", professor: session.name, replyTo: session.email }), session.labId);
     return Response.json({ ok: true, token });
-  }
-
-  if (b.action === "answers") {
-    const h = handoffs.find((x) => x.token === b.token);
-    if (!h) return err("Link not found", 404);
-    if (h.status === "saved") return err("This handoff is already saved", 409);
-    await update("handoffs", h.id, { answers: b.answers, status: b.submit ? "answered" : "sent", ...(b.submit ? { brief: null } : {}) });
-    return Response.json({ ok: true });
   }
 
   const h = handoffs.find((x) => x.id === b.handoffId);

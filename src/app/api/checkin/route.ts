@@ -27,14 +27,18 @@ export async function POST(req: Request) {
   if (!parsedBody.success) return Response.json({ error: "Invalid request" }, { status: 400 });
   const { token, answers } = parsedBody.data;
 
-  const [checkins, projects, members] = await Promise.all([list("checkins"), list("projects"), list("project_members")]);
-  const checkin = checkins.find((c) => c.token === token);
+  // the personal link is the only credential: look up this one check-in, then only this person's projects
+  const [checkin] = await list("checkins", { col: "token", eq: token });
   if (!checkin) return Response.json({ error: "Link not found" }, { status: 404 });
   if (checkin.submitted_at) return Response.json({ error: "Already submitted" }, { status: 409 });
 
-  const mine = projects.filter((p) => members.some((m) => m.person_id === checkin.person_id && m.project_id === p.id));
+  const members = await list("project_members", { col: "person_id", eq: checkin.person_id });
+  const mine = await list("projects", { col: "id", in: members.map((m) => m.project_id) });
+  // someone not on a project yet still checks in, under a general heading
+  const general = { id: "general", name: "General", phase_template: [] as string[], current_phase: 1 } as unknown as (typeof mine)[number];
+  const scope = mine.length ? mine : [general];
   const filled = answers
-    .map((a) => ({ ...a, project: mine.find((p) => p.id === a.projectId) }))
+    .map((a) => ({ ...a, project: scope.find((p) => p.id === a.projectId) }))
     .filter((a) => a.project && (a.challenges.trim() || a.plans.trim() || a.support.trim() || a.needsTasks || a.done.length));
   if (!filled.length) return Response.json({ error: "Write at least one answer" }, { status: 400 });
 
@@ -49,7 +53,7 @@ export async function POST(req: Request) {
   }
 
   // blockers become visible on the project journey; skip ones already open
-  const open = (await list("blockers")).filter((b) => !b.resolved_at);
+  const open = (await list("blockers", { col: "person_id", eq: checkin.person_id })).filter((b) => !b.resolved_at);
   for (const p of parsed.projects) {
     const project = mine.find((x) => x.name.toLowerCase() === p.project.toLowerCase());
     if (!project) continue;

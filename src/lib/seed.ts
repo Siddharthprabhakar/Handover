@@ -1,12 +1,13 @@
 import { heuristicParse } from "./checkin";
 
-// Demo data. All names are fake. Single source for the in-memory fallback and `npm run seed`.
+// Demo data. All names are fake. Used only when Supabase is not configured (in-memory demo mode).
+export type Lab = { id: string; name: string; created_at: string };
 export type Person = {
-  id: string; name: string; email: string; role: "professor" | "ra";
+  id: string; lab_id: string; auth_user_id: string | null; invited_at: string | null; name: string; email: string; role: "professor" | "ra";
   weekly_hours: number; max_tasks: number; status: "active" | "leaving"; leaving_on: string | null;
 };
 export type Project = {
-  id: string; name: string; kind: "lab" | "thesis"; goal: string | null;
+  id: string; lab_id: string; name: string; kind: "lab" | "thesis"; goal: string | null;
   phase_template: string[]; current_phase: number; deadline: string | null;
 };
 export type ProjectMember = { project_id: string; person_id: string };
@@ -27,9 +28,9 @@ export type Handoff = {
   id: string; person_id: string; project_id: string; questions: unknown; thanks: string | null;
   answers: unknown; brief: unknown; token: string; status: string;
 };
-export type DigestRow = { id: string; week: string; text: string; shared_at: string | null };
+export type DigestRow = { id: string; lab_id: string; week: string; text: string; shared_at: string | null };
 export type Tables = {
-  people: Person[]; projects: Project[]; project_members: ProjectMember[]; tasks: Task[];
+  labs: Lab[]; people: Person[]; projects: Project[]; project_members: ProjectMember[]; tasks: Task[];
   checkins: Checkin[]; blockers: Blocker[]; overtime: Overtime[]; handoffs: Handoff[]; digests: DigestRow[];
 };
 
@@ -39,8 +40,11 @@ export const PR = { way: uid(101), tele: uid(102), thesis: uid(103) };
 
 const LAB = ["Plan", "Recruit", "Interview", "Synthesize", "Design", "Test", "Report"];
 const THESIS = ["Proposal", "Literature", "Method", "Data", "Analysis", "Writing", "Defense"];
+export const DEMO_LAB = uid(900);
+// .invalid addresses can never receive mail; sendMail refuses them.
 const person = (id: string, name: string, role: Person["role"], extra: Partial<Person> = {}): Person => ({
-  id, name, email: `${name.toLowerCase().replace(/[^a-z]+/g, ".").replace(/^dr\.\./, "")}@iu.edu`, role,
+  id, lab_id: DEMO_LAB, auth_user_id: null, invited_at: null, name,
+  email: `${name.toLowerCase().replace(/[^a-z]+/g, ".").replace(/^dr\.\./, "")}@demo.invalid`, role,
   weekly_hours: 10, max_tasks: 5, status: "active", leaving_on: null, ...extra,
 });
 let tn = 1000;
@@ -48,6 +52,7 @@ const task = (project_id: string, phase: number, title: string, est_hours: numbe
   status: Task["status"] = "open", due: string | null = null): Task => ({ id: uid(tn++), project_id, phase, title, est_hours, assignee, status, due });
 
 export const seed: Tables = {
+  labs: [{ id: DEMO_LAB, name: "Demo lab", created_at: "2026-10-27T00:00:00Z" }],
   people: [
     person(P.prof, "Dr. Rivera", "professor"),
     person(P.ana, "Ana Ortiz", "ra"),
@@ -58,9 +63,9 @@ export const seed: Tables = {
     person(P.farah, "Farah Khan", "ra"),
   ],
   projects: [
-    { id: PR.way, name: "Campus Wayfinding Study", kind: "lab", goal: "How first-year students find rooms on campus. 12 interviews planned.", phase_template: LAB, current_phase: 3, deadline: "2027-05-02" },
-    { id: PR.tele, name: "Telehealth Accessibility", kind: "lab", goal: "Accessibility gaps in telehealth booking for older adults.", phase_template: LAB, current_phase: 4, deadline: "2027-05-02" },
-    { id: PR.thesis, name: "Thesis: Voice UI for Older Adults", kind: "thesis", goal: "Ana Ortiz's master's thesis, advised by Dr. Rivera.", phase_template: THESIS, current_phase: 5, deadline: "2027-04-22" },
+    { id: PR.way, lab_id: DEMO_LAB, name: "Campus Wayfinding Study", kind: "lab", goal: "How first-year students find rooms on campus. 12 interviews planned.", phase_template: LAB, current_phase: 3, deadline: "2027-05-02" },
+    { id: PR.tele, lab_id: DEMO_LAB, name: "Telehealth Accessibility", kind: "lab", goal: "Accessibility gaps in telehealth booking for older adults.", phase_template: LAB, current_phase: 4, deadline: "2027-05-02" },
+    { id: PR.thesis, lab_id: DEMO_LAB, name: "Thesis: Voice UI for Older Adults", kind: "thesis", goal: "Ana Ortiz's master's thesis, advised by Dr. Rivera.", phase_template: THESIS, current_phase: 5, deadline: "2027-04-22" },
   ],
   project_members: [
     ...[P.ben, P.ana, P.emi].map((p) => ({ project_id: PR.way, person_id: p })),

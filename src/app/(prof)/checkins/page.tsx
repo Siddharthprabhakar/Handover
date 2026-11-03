@@ -1,14 +1,16 @@
+import { requireProfessor } from "@/lib/session";
 import Link from "next/link";
 import { ActionBar, Avatar, Card, Chip, PageHeader, type Tone } from "@/components/ui";
 import { ReminderButton } from "@/components/ReminderButton";
 import type { Parsed } from "@/lib/checkin";
 import { getDigest } from "@/lib/digest";
-import { WEEK, initials, loadLab } from "@/lib/lab";
+import { WEEK, fmtDate, initials, loadLab } from "@/lib/lab";
 
 export const dynamic = "force-dynamic";
 
 export default async function Checkins() {
-  const lab = await loadLab();
+  const session = await requireProfessor();
+  const lab = await loadLab(session.labId);
   const digest = await getDigest(lab);
   const shared = lab.digests.find((d) => d.week === WEEK);
   const submitted = lab.weekCheckins.filter((c) => c.submitted_at).length;
@@ -40,8 +42,8 @@ export default async function Checkins() {
 
   return (
     <>
-      <PageHeader title="Check-ins" sub={`Week of Nov 2 · every Monday at 9:00 · ${submitted} of ${lab.ras.length} submitted`} />
-      <div className="flex gap-2 px-2"><Chip tone="dark">Nov 2 · this week</Chip></div>
+      <PageHeader title="Check-ins" sub={`Week of ${fmtDate(WEEK)} · every Monday at 9:00 · ${submitted} of ${lab.ras.length} submitted`} />
+      <div className="flex gap-2 px-2"><Chip tone="dark">{fmtDate(WEEK)} · this week</Chip></div>
 
       <div className="grid items-start gap-4 lg:grid-cols-[1fr_320px]">
         <Card className="overflow-x-auto !p-6">

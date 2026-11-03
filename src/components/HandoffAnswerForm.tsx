@@ -54,7 +54,7 @@ export function HandoffAnswerForm({ token, first, thanks, questions, initial, re
             <ul className="mt-2 space-y-1.5 text-sm">{remembered.map((r) => <li key={r}>• {r}</li>)}</ul>
             <p className="mt-2 text-xs text-muted">This comes from the tasks recorded for you. Add anything missing in your answers.</p>
           </Card>
-          <p className="px-1 text-xs text-muted">Only your professor sees your answers until she shares the brief.</p>
+          <p className="px-1 text-xs text-muted">Only your professor sees your answers until the brief is shared.</p>
         </div>
       </div>
 

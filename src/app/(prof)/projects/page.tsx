@@ -1,4 +1,6 @@
+import { requireProfessor } from "@/lib/session";
 import Link from "next/link";
+import { LoadSample } from "@/components/LoadSample";
 import { ActionBar, Avatar, Btn, Card, Chip, Icon, PageHeader, Segments } from "@/components/ui";
 import { initials, loadLab } from "@/lib/lab";
 
@@ -6,7 +8,8 @@ export const dynamic = "force-dynamic";
 
 export default async function Projects({ searchParams }: PageProps<"/projects">) {
   const kind = (await searchParams).kind;
-  const lab = await loadLab();
+  const session = await requireProfessor();
+  const lab = await loadLab(session.labId);
   const all = lab.projects;
   const shown = kind === "lab" || kind === "thesis" ? all.filter((p) => p.kind === kind) : all;
   const count = (k: string) => all.filter((p) => p.kind === k).length;
@@ -63,6 +66,7 @@ export default async function Projects({ searchParams }: PageProps<"/projects">)
       </div>
 
       <ActionBar>
+        <LoadSample />
         <Btn href="/projects/new" kind="pri"><Icon name="plus" className="h-4 w-4" />Add project</Btn>
       </ActionBar>
     </>

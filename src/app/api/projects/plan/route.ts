@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getSession } from "@/lib/session";
 import { loadLab } from "@/lib/lab";
 import { phaseOneCheck } from "@/lib/limits";
 import { loadsOf } from "@/lib/loads";
@@ -21,7 +22,9 @@ export async function POST(req: Request) {
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return Response.json({ error: "Add a name, a goal and at least one person" }, { status: 400 });
   const { kind, name, goal, deadline, people } = body.data;
-  const lab = await loadLab();
+  const session = await getSession();
+  if (!session) return Response.json({ error: "Sign in required" }, { status: 401 });
+  const lab = await loadLab(session.labId);
   const chosen = loadsOf(lab).filter((l) => people.includes(l.id));
   if (!chosen.length) return Response.json({ error: "Pick at least one person" }, { status: 400 });
 

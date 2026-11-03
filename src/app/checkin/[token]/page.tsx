@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { list } from "@/lib/db";
 import { CheckinForm } from "@/components/CheckinForm";
 import { Card, Chip } from "@/components/ui";
 import type { Parsed } from "@/lib/checkin";
@@ -8,7 +9,10 @@ export const dynamic = "force-dynamic";
 
 export default async function CheckinPage({ params }: PageProps<"/checkin/[token]">) {
   const { token } = await params;
-  const lab = await loadLab();
+  const [found] = await list("checkins", { col: "token", eq: token });
+  if (!found) notFound();
+  const [owner] = await list("people", { col: "id", eq: found.person_id });
+  const lab = await loadLab(owner.lab_id);
   const checkin = lab.checkins.find((c) => c.token === token);
   if (!checkin) notFound();
   const person = lab.byId.get(checkin.person_id)!;
@@ -17,6 +21,7 @@ export default async function CheckinPage({ params }: PageProps<"/checkin/[token
     .filter((m) => m.person_id === person.id)
     .map((m) => lab.projects.find((p) => p.id === m.project_id)!)
     .map((p) => ({ id: p.id, name: p.name, kind: p.kind }));
+  if (projects.length === 0) projects.push({ id: "general", name: "Your week", kind: "lab" });
   const planned = lab.tasks.filter((t) => t.assignee === person.id && t.status === "open").slice(0, 3).map((t) => t.title);
   const parsed = checkin.parsed as Parsed | null;
 

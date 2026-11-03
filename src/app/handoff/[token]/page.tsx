@@ -8,9 +8,11 @@ export const dynamic = "force-dynamic";
 
 export default async function HandoffAnswers({ params }: PageProps<"/handoff/[token]">) {
   const { token } = await params;
-  const h = (await list("handoffs")).find((x) => x.token === token);
+  const [h] = await list("handoffs", { col: "token", eq: token });
   if (!h) notFound();
-  const lab = await loadLab();
+  const [owner] = await list("people", { col: "id", eq: h.person_id });
+  const lab = await loadLab(owner.lab_id);
+  const professor = lab.people.find((p) => p.role === "professor")?.name ?? "Your professor";
   const ctx = buildContext(lab, h.person_id);
   const questions = ((h.questions as HQuestion[] | null) ?? []).filter((q) => q.include);
   const remembered = [...ctx.tasks.filter((t) => t.status === "done").map((t) => `${t.title} (${t.project})`), ...ctx.tasks.filter((t) => t.status === "open").map((t) => `${t.title} (${t.project}), still open`)];
@@ -23,7 +25,7 @@ export default async function HandoffAnswers({ params }: PageProps<"/handoff/[to
       </div>
       <div className="px-2">
         <h1 className="font-heading text-[30px] font-bold">Thank you, {ctx.first}</h1>
-        <p className="text-sm text-muted">Dr. Rivera asked a few questions so the next person can pick up your work. Save a draft any time.</p>
+        <p className="text-sm text-muted">{professor} asked a few questions so the next person can pick up your work. Save a draft any time.</p>
       </div>
       <HandoffAnswerForm
         token={token}

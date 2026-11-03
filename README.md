@@ -38,17 +38,17 @@ Design rules: Muse only uses the data it is given, blocker quotes must appear in
 
 ## Honest status
 
-- The Muse client is written against the Meta Model API's Chat Completions format ([`src/lib/muse.ts`](src/lib/muse.ts)). **Mock mode** (`MUSE_MOCK=1`, or no `MODEL_API_KEY`) uses rule-based stand-ins built from the real data, so the whole app runs without credits. Check the live mode before relying on it: set a key and open `/api/muse/smoke`.
-- Data lives in memory (seeded, fake people) unless Supabase keys are set. Schema: [`supabase/schema.sql`](supabase/schema.sql). In memory, changes reset when the server restarts.
-- Emails are never sent to the seeded addresses. Real delivery needs `RESEND_API_KEY` and `DEMO_EMAIL_TO`; otherwise messages show in `/outbox`.
-- The demo is pinned to the week of Nov 2, 2026 ([`src/lib/demo.ts`](src/lib/demo.ts)).
-- Not built: login and roles (the professor view is open), editing default limits, a client-facing read-only view, Slack/Teams import.
+- **Accounts:** professors sign up with a password and are required to add two-step sign-in (an authenticator app) before they can use the app. Each professor has their own lab and only sees its data. Students and RAs have no account: the professor invites them by email and they use personal links for check-ins and handoffs.
+- **Muse** is written against the Meta Model API Chat Completions format (`src/lib/muse.ts`). With `MUSE_MOCK=1`, or no key, rule-based stand-ins built from the real data are used. Check live mode by signing in and opening `/api/muse/smoke`.
+- **Email** goes through Gmail SMTP (`GMAIL_USER`, `GMAIL_APP_PASSWORD`). Addresses ending in `.invalid` (the demo data) are never sent. Every message is also shown at `/outbox`.
+- Without Supabase keys the app runs as an in-memory demo with sample people (no sign-in).
+- Not built: student accounts and screens, editing the default limits, a client-facing view, Slack/Teams import. Sign-up is open to anyone.
 
 ## Run it
 
 ```bash
 npm install
-cp .env.example .env.local   # works as-is in mock mode
+cp .env.example .env.local   # then add your Supabase and Gmail values; run the SQL in supabase/schema.sql first
 npm run dev
 ```
 

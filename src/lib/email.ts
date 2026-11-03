@@ -1,36 +1,43 @@
-export type Mail = { to: string; toName: string; subject: string; html: string };
-export type OutboxItem = Mail & { at: string; mode: "sent" | "preview"; error?: string };
+import nodemailer from "nodemailer";
+
+export type Mail = { to: string; toName: string; subject: string; html: string; replyTo?: string };
+export type OutboxItem = Mail & { labId: string; at: string; mode: "sent" | "preview"; error?: string };
 
 const g = globalThis as { __outbox?: OutboxItem[] };
 const outbox = (g.__outbox ??= []);
-export const getOutbox = () => [...outbox].reverse();
+export const getOutbox = (labId: string) => outbox.filter((m) => m.labId === labId).reverse();
 
 export const appUrl = () => process.env.APP_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
 
+const gmail = () =>
+  process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD
+    ? nodemailer.createTransport({ service: "gmail", auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD } })
+    : null;
+
 /**
- * The seeded people have made-up addresses, so real delivery needs DEMO_EMAIL_TO: every message is
- * redirected there with "[to Name]" in the subject. Without it (or without a Resend key) mail is
- * only recorded in the outbox preview at /outbox.
+ * Sends through Gmail SMTP. Addresses ending in .invalid (the demo people) are never sent, and without
+ * Gmail credentials the message is only recorded. Every message is also kept in the lab's /outbox.
  */
-export async function sendMail(m: Mail): Promise<OutboxItem> {
-  const key = process.env.RESEND_API_KEY;
-  const redirect = process.env.DEMO_EMAIL_TO;
-  const item: OutboxItem = { ...m, at: new Date().toISOString(), mode: "preview" };
-  if (key && redirect) {
+export async function sendMail(m: Mail, labId: string): Promise<OutboxItem> {
+  const item: OutboxItem = { ...m, labId, at: new Date().toISOString(), mode: "preview" };
+  const transport = gmail();
+  if (!transport) item.error = "Gmail is not configured";
+  else if (m.to.toLowerCase().endsWith(".invalid")) item.error = "Demo address: not sent";
+  else {
     try {
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-        body: JSON.stringify({ from: process.env.RESEND_FROM ?? "Handover <onboarding@resend.dev>", to: [redirect], subject: `[to ${m.toName}] ${m.subject}`, html: m.html }),
-        signal: AbortSignal.timeout(15_000),
+      await transport.sendMail({
+        from: `"Handover" <${process.env.GMAIL_USER}>`,
+        to: m.to,
+        replyTo: m.replyTo,
+        subject: m.subject,
+        html: m.html,
       });
-      if (res.ok) item.mode = "sent";
-      else item.error = `Resend ${res.status}: ${(await res.text()).slice(0, 200)}`;
+      item.mode = "sent";
     } catch (e) {
-      item.error = e instanceof Error ? e.message : "Email failed";
+      item.error = e instanceof Error ? e.message.slice(0, 160) : "Email failed";
     }
   }
   outbox.push(item);
-  if (outbox.length > 50) outbox.shift();
+  if (outbox.length > 200) outbox.shift();
   return item;
 }

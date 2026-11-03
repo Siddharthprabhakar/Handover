@@ -43,14 +43,23 @@ function Nav({ path, onNavigate }: { path: string; onNavigate?: () => void }) {
   );
 }
 
-const Viewer = () => (
-  <div className="rounded-2xl bg-bg p-3.5">
-    <div className="text-xs text-muted">Viewing as</div>
-    <div className="text-sm font-semibold">Professor</div>
-  </div>
-);
+export type SidebarUser = { name: string; email: string; lab: string; demo: boolean };
 
-export function Sidebar() {
+function UserBox({ user }: { user: SidebarUser }) {
+  return (
+    <div className="rounded-2xl bg-bg p-3.5">
+      <div className="truncate text-sm font-semibold">{user.name}</div>
+      <div className="truncate text-xs text-muted">{user.demo ? "Demo mode: sample data" : user.lab}</div>
+      {!user.demo && (
+        <form action="/logout" method="post" className="mt-2">
+          <button className="text-xs font-semibold text-crimson">Sign out</button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+export function Sidebar({ user }: { user: SidebarUser }) {
   const path = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -89,7 +98,7 @@ export function Sidebar() {
             </div>
             <Nav path={path} onNavigate={() => setOpen(false)} />
             <div className="flex-1" />
-            <Viewer />
+            <UserBox user={user} />
           </aside>
         </div>
       )}
@@ -99,7 +108,7 @@ export function Sidebar() {
         <div className="mb-4"><Logo /></div>
         <Nav path={path} />
         <div className="flex-1" />
-        <Viewer />
+        <UserBox user={user} />
       </aside>
     </>
   );

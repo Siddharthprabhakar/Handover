@@ -16,30 +16,38 @@ ${body}
 }
 
 const p = (s: string) => `<p style="font-size:15px;line-height:1.6;margin:0 0 12px">${s}</p>`;
-const FOOT = "Sent for Dr. Rivera&rsquo;s lab. Your professor sees what you share, and so do you.";
+const foot = (lab: string) => `Sent for ${esc(lab)}. Your professor sees what you share, and so do you.`;
 
-export function checkinEmail(o: { to: string; name: string; link: string; planned: string[]; projects: string[] }): Mail {
+export function checkinEmail(o: { to: string; name: string; link: string; planned: string[]; projects: string[]; lab: string }): Mail {
   const first = esc(o.name.split(" ")[0]);
   const plan = o.planned.length ? p("Last week you planned to:") + `<ul style="margin:0 0 12px;padding-left:20px;font-size:15px;line-height:1.7">${o.planned.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>` : "";
   const more = o.projects.length > 1 ? p(`You are on ${o.projects.length} projects, so we will ask about all of them: ${o.projects.map(esc).join(" and ")}.`) : "";
   return {
     to: o.to, toName: o.name, subject: "Your weekly check-in",
-    html: layout(`Hi ${first}, your weekly check-in`, p("It takes about 2 minutes, and a few words per box is plenty.") + plan + more, { href: o.link, label: "Open my check-in" }, `No login needed. This link is only for you. ${FOOT}`),
+    html: layout(`Hi ${first}, your weekly check-in`, p("It takes about 2 minutes, and a few words per box is plenty.") + plan + more, { href: o.link, label: "Open my check-in" }, `No login needed. This link is only for you. ${foot(o.lab)}`),
   };
 }
 
-export function reminderEmail(o: { to: string; name: string; link: string; number: number }): Mail {
+export function reminderEmail(o: { to: string; name: string; link: string; number: number; lab: string }): Mail {
   const first = esc(o.name.split(" ")[0]);
   return {
     to: o.to, toName: o.name, subject: "No rush: your check-in whenever you are ready",
-    html: layout(`Hi ${first}, a gentle nudge`, p("Your check-in takes about 2 minutes. If you are stuck on something, that is a good thing to write down. It helps your professor help you.") + p(`<span style="color:#6f6d75">Reminder ${o.number} of 2. It stops as soon as you send your check-in.</span>`), { href: o.link, label: "Open my check-in" }, FOOT),
+    html: layout(`Hi ${first}, a gentle nudge`, p("Your check-in takes about 2 minutes. If you are stuck on something, that is a good thing to write down. It helps your professor help you.") + p(`<span style="color:#6f6d75">Reminder ${o.number} of 2. It stops as soon as you send your check-in.</span>`), { href: o.link, label: "Open my check-in" }, foot(o.lab)),
   };
 }
 
-export function handoffEmail(o: { to: string; name: string; link: string; project: string }): Mail {
+export function handoffEmail(o: { to: string; name: string; link: string; project: string; professor: string; replyTo?: string }): Mail {
   const first = esc(o.name.split(" ")[0]);
   return {
-    to: o.to, toName: o.name, subject: "A few questions before you go",
-    html: layout(`Thank you, ${first}`, p(`Dr. Rivera asked a few questions so the next person can pick up your work on ${esc(o.project)}. Answer in your own time and save a draft whenever you like.`) + p("There is also a short note of thanks waiting for you."), { href: o.link, label: "Open my questions" }, "Only your professor sees your answers until she shares the brief."),
+    to: o.to, toName: o.name, replyTo: o.replyTo, subject: "A few questions before you go",
+    html: layout(`Thank you, ${first}`, p(`${esc(o.professor)} asked a few questions so the next person can pick up your work on ${esc(o.project)}. Answer in your own time and save a draft whenever you like.`) + p("There is also a short note of thanks waiting for you."), { href: o.link, label: "Open my questions" }, "Only your professor sees your answers until they share the brief."),
+  };
+}
+
+export function inviteEmail(o: { to: string; name: string; link: string; lab: string; professor: string; replyTo?: string }): Mail {
+  const first = esc(o.name.split(" ")[0]);
+  return {
+    to: o.to, toName: o.name, replyTo: o.replyTo, subject: `${o.professor} added you to ${o.lab} on Handover`,
+    html: layout(`Hi ${first}, welcome to ${esc(o.lab)}`, p(`${esc(o.professor)} uses Handover so the lab can keep track of projects without anyone having to repeat themselves. Each week you will get a short check-in: what you did, what got in the way, and what you plan next. It takes about two minutes.`) + p("Here is your first one. There is no account to create. This link is only for you."), { href: o.link, label: "Open my check-in" }, "You can reply to this email to reach your professor. Your professor sees what you share, and so do you."),
   };
 }

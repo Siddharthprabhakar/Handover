@@ -1,5 +1,8 @@
+import { requireProfessor } from "@/lib/session";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProjectPeople } from "@/components/ProjectPeople";
+import { ProjectSummary } from "@/components/ProjectSummary";
 import { Avatar, Card, Chip, PageHeader } from "@/components/ui";
 import { fmtDate, initials, loadLab } from "@/lib/lab";
 
@@ -7,7 +10,8 @@ export const dynamic = "force-dynamic";
 
 export default async function Journey({ params, searchParams }: PageProps<"/projects/[id]">) {
   const { id } = await params;
-  const lab = await loadLab();
+  const session = await requireProfessor();
+  const lab = await loadLab(session.labId);
   const project = lab.projects.find((p) => p.id === id);
   if (!project) notFound();
 
@@ -79,6 +83,9 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
           ))}
         </div>
       </Card>
+
+      <ProjectSummary projectId={id} />
+      <ProjectPeople projectId={id} members={members.map((m) => ({ id: m.id, name: m.name }))} others={lab.ras.filter((r) => !members.some((m) => m.id === r.id)).map((r) => ({ id: r.id, name: r.name }))} />
 
       <div className="grid items-start gap-4 lg:grid-cols-2">
         <Card>

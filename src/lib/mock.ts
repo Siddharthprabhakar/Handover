@@ -2,6 +2,12 @@ import type { JobName } from "./schemas";
 
 // Saved sample answers, used when MUSE_MOCK=1 or no API key is set.
 export const MOCK: Record<JobName, unknown> = {
+  summary: {
+    summary: "The project is in its middle phase. Planning and recruitment are finished and interviews are under way.",
+    progress: "Planning and recruitment are done; interviews are about a third complete.",
+    risks: ["Recruitment is slower than planned."],
+    next_steps: ["Re-post the flyer", "Schedule the remaining sessions"],
+  },
   checkin: {
     projects: [
       {

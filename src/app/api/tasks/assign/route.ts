@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getSession } from "@/lib/session";
 import { insert } from "@/lib/db";
 import { TODAY } from "@/lib/demo";
 import { loadLab } from "@/lib/lab";
@@ -24,7 +25,9 @@ export async function POST(req: Request) {
   if (!body.success) return Response.json({ error: "Add a task name, hours and a person" }, { status: 400 });
   const { personId, projectId, phase, title, hours, overtime } = body.data;
 
-  const lab = await loadLab();
+  const session = await getSession();
+  if (!session) return Response.json({ error: "Sign in required" }, { status: 401 });
+  const lab = await loadLab(session.labId);
   const loads = loadsOf(lab);
   const person = loads.find((l) => l.id === personId);
   if (!person) return Response.json({ error: "Person not found" }, { status: 404 });
@@ -43,6 +46,8 @@ export async function POST(req: Request) {
     fit = { ...fit, ok: true, kind: "overtime" };
   }
 
+  // a person with a task on a project is a member of it
+  if (!lab.members.some((m) => m.project_id === projectId && m.person_id === personId)) await insert("project_members", { project_id: projectId, person_id: personId });
   const task = await insert("tasks", { project_id: projectId, phase, title: title.trim(), est_hours: hours, assignee: personId, status: "open", due: null });
   return Response.json({ ok: true, id: task.id, overtime: fit.kind === "overtime" });
 }

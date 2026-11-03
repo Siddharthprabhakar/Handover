@@ -48,5 +48,12 @@ export const HandoffBrief = z.object({
   unanswered: z.array(z.string()),
 });
 
-export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief };
+export const ProjectSummary = z.object({
+  summary: z.string(),
+  progress: z.string(),
+  risks: z.array(z.string()),
+  next_steps: z.array(z.string()),
+});
+
+export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary };
 export type JobName = keyof typeof schemas;

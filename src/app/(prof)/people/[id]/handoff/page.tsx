@@ -1,3 +1,4 @@
+import { requireProfessor } from "@/lib/session";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HandoffBrief } from "@/components/HandoffBrief";
@@ -5,7 +6,6 @@ import { HandoffSetup } from "@/components/HandoffSetup";
 import { Card, Chip, PageHeader } from "@/components/ui";
 import type { Brief, HQuestion } from "@/lib/handoff";
 import { loadLab } from "@/lib/lab";
-import { list } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -13,11 +13,12 @@ const STEPS = ["Set up questions", "Student answers", "Handoff brief"];
 
 export default async function Handoff({ params, searchParams }: PageProps<"/people/[id]/handoff">) {
   const { id } = await params;
-  const lab = await loadLab();
+  const session = await requireProfessor();
+  const lab = await loadLab(session.labId);
   const person = lab.byId.get(id);
   if (!person || person.role !== "ra") notFound();
   const first = person.name.split(" ")[0];
-  const h = (await list("handoffs")).find((x) => x.person_id === id) ?? null;
+  const h = lab.handoffs.find((x) => x.person_id === id) ?? null;
   const qs = ((h?.questions as HQuestion[] | null) ?? null)?.filter((q) => q.include) ?? [];
   const answers = (h?.answers as Record<string, string> | null) ?? {};
   const answered = qs.filter((q) => (answers[q.id] ?? "").trim()).length;

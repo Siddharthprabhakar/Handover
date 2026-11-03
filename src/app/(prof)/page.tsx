@@ -1,4 +1,5 @@
-import { Avatar, Card, Chip, PageHeader } from "@/components/ui";
+import { requireProfessor } from "@/lib/session";
+import { Avatar, Btn, Card, Chip, PageHeader } from "@/components/ui";
 import { DigestCard } from "@/components/DigestCard";
 import { ReminderButton } from "@/components/ReminderButton";
 import { getDigest } from "@/lib/digest";
@@ -7,7 +8,24 @@ import { WEEK, fmtDate, initials, loadLab } from "@/lib/lab";
 export const dynamic = "force-dynamic";
 
 export default async function LabOverview() {
-  const lab = await loadLab();
+  const session = await requireProfessor();
+  const lab = await loadLab(session.labId);
+  if (lab.ras.length === 0) {
+    return (
+      <>
+        <PageHeader title={`Welcome, ${session.name}`} sub="Set up your lab in three steps." />
+        <Card className="flex flex-col gap-4 !p-6">
+          {[["1", "Invite your people", "Add research assistants and students by email. They get a personal check-in link, with no account to create.", "/people", "Invite people"], ["2", "Add a project", "Describe a goal and Muse drafts the phases and tasks, or load two sample projects to try it out.", "/projects", "Open projects"], ["3", "Send the first check-in", "Each week everyone answers four short questions. Muse turns the answers into a digest for you.", "/checkins", "Open check-ins"]].map(([n, t, d, href, label]) => (
+            <div key={n} className="flex flex-wrap items-center gap-3.5 border-t border-line pt-4 first:border-t-0 first:pt-0">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-crimson-soft font-semibold text-crimson">{n}</span>
+              <div className="min-w-[200px] flex-1"><b className="block">{t}</b><span className="text-sm text-muted">{d}</span></div>
+              <Btn href={href}>{label}</Btn>
+            </div>
+          ))}
+        </Card>
+      </>
+    );
+  }
   const digest = await getDigest(lab);
   const byName = new Map(lab.people.map((p) => [p.name, p]));
   const submitted = lab.weekCheckins.filter((c) => c.submitted_at).length;
@@ -20,7 +38,7 @@ export default async function LabOverview() {
 
   return (
     <>
-      <PageHeader title="Good morning, Dr. Rivera" sub={`Week of Nov 2 · ${submitted} of ${lab.ras.length} check-ins in`} />
+      <PageHeader title={`Good morning, ${session.name}`} sub={`Week of ${fmtDate(WEEK)} · ${submitted} of ${lab.ras.length} check-ins in`} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="flex flex-col gap-2">

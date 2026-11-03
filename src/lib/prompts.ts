@@ -58,3 +58,11 @@ Questions and the assistant's own answers: ${JSON.stringify(qa)}
 Return JSON: {"where_we_are": string,"contributed": string,"code_and_backups":[{"name": string,"detail": string,"backup": string}],"decisions": string,"open_work": string,"advice": string,"unanswered": string[]}
 Use their answers and the records only. List every question with an empty answer in "unanswered". Do not invent repos, paths or dates.`;
 }
+
+export function summaryPrompt(ctx: unknown) {
+  return `Summarise this research project for the professor who runs the lab.
+Data: ${JSON.stringify(ctx)}
+
+Return JSON: {"summary": string (2-3 plain sentences),"progress": string (one sentence on what is done and what is in progress),"risks": string[] (real problems visible in the data, quoting a person's own words where there are blockers; empty if none),"next_steps": string[] (2-4 concrete next steps drawn from open tasks and blockers)}.
+Use only the data. Do not invent people, dates or numbers. If there is very little data, say so plainly.`;
+}
