@@ -1,3 +1,4 @@
+import { dbMessage } from "@/lib/errors";
 import { z } from "zod";
 import { update } from "@/lib/db";
 import { loadLab } from "@/lib/lab";
@@ -14,7 +15,7 @@ const Body = z.object({
 });
 
 // Ethics review status and how many participants the study needs. Plain records: Handover tracks them, the university's IRB office decides them.
-export async function POST(req: Request) {
+async function handle(req: Request) {
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return Response.json({ error: "Check the date and the number of participants" }, { status: 400 });
   const session = await getSession();
@@ -23,4 +24,12 @@ export async function POST(req: Request) {
   if (!(await loadLab(session.labId)).projects.some((p) => p.id === b.projectId)) return Response.json({ error: "Project not found" }, { status: 404 });
   await update("projects", b.projectId, { irb_status: b.irbStatus, irb_ref: b.irbRef || null, irb_date: b.irbDate, participant_target: b.target });
   return Response.json({ ok: true });
+}
+
+export async function POST(...args: Parameters<typeof handle>) {
+  try {
+    return await handle(...args);
+  } catch (e) {
+    return Response.json({ error: dbMessage(e) }, { status: 500 });
+  }
 }

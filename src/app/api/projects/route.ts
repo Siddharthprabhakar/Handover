@@ -1,3 +1,4 @@
+import { dbMessage } from "@/lib/errors";
 import { z } from "zod";
 import { getSession } from "@/lib/session";
 import { insert } from "@/lib/db";
@@ -29,7 +30,7 @@ const Body = z.object({
   }),
 });
 
-export async function POST(req: Request) {
+async function handle(req: Request) {
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return Response.json({ error: "Invalid project" }, { status: 400 });
   const { kind, name, goal, deadline, people, plan, notes } = body.data;
@@ -61,4 +62,12 @@ export async function POST(req: Request) {
     }
   }
   return Response.json({ ok: true, id: project.id });
+}
+
+export async function POST(...args: Parameters<typeof handle>) {
+  try {
+    return await handle(...args);
+  } catch (e) {
+    return Response.json({ error: dbMessage(e) }, { status: 500 });
+  }
 }

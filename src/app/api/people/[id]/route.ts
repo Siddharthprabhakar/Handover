@@ -1,3 +1,4 @@
+import { dbMessage } from "@/lib/errors";
 import { z } from "zod";
 import { update } from "@/lib/db";
 import { loadLab } from "@/lib/lab";
@@ -9,7 +10,7 @@ export const dynamic = "force-dynamic";
 const Body = z.object({ program: z.enum(PROGRAMS).nullable() });
 
 // Set which program someone is in. Only people in the caller's own lab.
-export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+async function handle(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return Response.json({ error: "Invalid request" }, { status: 400 });
   const session = await getSession();
@@ -18,4 +19,12 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (!(await loadLab(session.labId)).people.some((p) => p.id === id)) return Response.json({ error: "Not found" }, { status: 404 });
   await update("people", id, { program: body.data.program });
   return Response.json({ ok: true });
+}
+
+export async function PATCH(...args: Parameters<typeof handle>) {
+  try {
+    return await handle(...args);
+  } catch (e) {
+    return Response.json({ error: dbMessage(e) }, { status: 500 });
+  }
 }

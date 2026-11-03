@@ -1,3 +1,4 @@
+import { dbMessage } from "@/lib/errors";
 import { z } from "zod";
 import { insert } from "@/lib/db";
 import { appUrl, sendMail } from "@/lib/email";
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
 const Body = z.object({ name: z.string().trim().min(1).max(120), email: z.string().trim().toLowerCase().email().max(200), program: z.enum(PROGRAMS).nullish() });
 
 // Add a research assistant or student and email them their personal check-in link. No account needed.
-export async function POST(req: Request) {
+async function handle(req: Request) {
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return Response.json({ error: "Add a name and a valid email address" }, { status: 400 });
   const session = await getSession();
@@ -28,4 +29,12 @@ export async function POST(req: Request) {
   const checkin = lab.weekCheckins.find((c) => c.person_id === person.id)!;
   const mail = await sendMail(inviteEmail({ to: email, name, link: `${appUrl()}/checkin/${checkin.token}`, lab: session.labName, professor: session.name, replyTo: session.email }), session.labId);
   return Response.json({ ok: true, id: person.id, emailed: mail.mode === "sent", emailNote: mail.error });
+}
+
+export async function POST(...args: Parameters<typeof handle>) {
+  try {
+    return await handle(...args);
+  } catch (e) {
+    return Response.json({ error: dbMessage(e) }, { status: 500 });
+  }
 }

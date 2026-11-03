@@ -1,3 +1,4 @@
+import { dbMessage } from "@/lib/errors";
 import { z } from "zod";
 import { update } from "@/lib/db";
 import { loadLab } from "@/lib/lab";
@@ -11,7 +12,7 @@ const Body = z.object({
 });
 
 // Rename phases, set their due dates, add one at the end, or drop the last one. Tasks and blockers point at a phase by its number, so only the end of the list can change length.
-export async function POST(req: Request) {
+async function handle(req: Request) {
   const body = Body.safeParse(await req.json().catch(() => null));
   if (!body.success) return Response.json({ error: "Every phase needs a name, and a project can have 1 to 12 phases" }, { status: 400 });
   const session = await getSession();
@@ -27,4 +28,12 @@ export async function POST(req: Request) {
   }
   await update("projects", project.id, { phase_template: phases.map((p) => p.name), phase_due: phases.map((p) => p.due) });
   return Response.json({ ok: true });
+}
+
+export async function POST(...args: Parameters<typeof handle>) {
+  try {
+    return await handle(...args);
+  } catch (e) {
+    return Response.json({ error: dbMessage(e) }, { status: 500 });
+  }
 }

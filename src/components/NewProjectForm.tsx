@@ -158,6 +158,7 @@ export function NewProjectForm({ ras }: { ras: Load[] }) {
         </Card>
 
         <Card className="!p-6">
+          {error && <div role="alert" className="mb-4 rounded-2xl bg-crimson-soft p-4 text-sm font-semibold text-crimson">{error}</div>}
           <div className="flex items-center gap-2.5">
             <h2 className="font-heading text-[22px] font-bold">Draft plan</h2>
             {busy === "plan" || busy === "doc" ? <Chip>Muse is working…</Chip> : plan && <Chip>{fromDoc ? "Read from your document" : "Suggested by Muse"} · edit anything</Chip>}
@@ -271,7 +272,7 @@ export function NewProjectForm({ ras }: { ras: Load[] }) {
       </div>
 
       <div className="sticky bottom-4 mt-auto flex flex-wrap items-center gap-2.5 rounded-[20px] bg-surface px-5 py-3">
-        <span className="text-[13px] text-muted">{error ? <span className="text-crimson">{error}</span> : "Nothing is created until you press Create project."}</span>
+        {error ? <span role="alert" className="min-w-0 flex-1 rounded-xl bg-crimson-soft px-3.5 py-2 text-sm font-semibold text-crimson">{error}</span> : <span className="text-[13px] text-muted">Nothing is created until you press Create project.</span>}
         <span className="flex-1" />
         <Link href="/projects" className="rounded-full border border-line px-[18px] py-2.5 text-sm font-semibold">Cancel</Link>
         <button type="button" disabled={!plan || !name.trim() || plan.phases.some((p) => !p.name.trim()) || over.length > 0 || busy !== ""} onClick={create} className="rounded-full bg-crimson px-[18px] py-2.5 text-sm font-semibold text-white disabled:opacity-40">
