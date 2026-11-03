@@ -1,7 +1,6 @@
 import { requireProfessor } from "@/lib/session";
 import Link from "next/link";
-import { LoadSample } from "@/components/LoadSample";
-import { ActionBar, Avatar, Btn, Card, Chip, Icon, PageHeader, Segments } from "@/components/ui";
+import { Avatar, Card, Chip, Icon, PageHeader, Segments } from "@/components/ui";
 import { initials, loadLab } from "@/lib/lab";
 
 export const dynamic = "force-dynamic";
@@ -65,10 +64,6 @@ export default async function Projects({ searchParams }: PageProps<"/projects">)
         </Link>
       </div>
 
-      <ActionBar>
-        <LoadSample />
-        <Btn href="/projects/new" kind="pri"><Icon name="plus" className="h-4 w-4" />Add project</Btn>
-      </ActionBar>
     </>
   );
 }
