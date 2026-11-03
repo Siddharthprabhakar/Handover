@@ -53,6 +53,12 @@ export function EvidenceCard({ projectId, questions, synthesis, ready }: { proje
             </div>
           )}
 
+          {s.checked && s.checked.proposed > 0 && (
+            <p className="flex items-center gap-2 text-[13px]">
+              <Chip tone={s.checked.kept === s.checked.proposed ? "ok" : "warn"}>{s.checked.kept} of {s.checked.proposed} quotes verified</Chip>
+              <span className="text-muted">{s.checked.kept === s.checked.proposed ? "Every quote was found word for word in a transcript." : `${s.checked.proposed - s.checked.kept} removed: not found in any transcript.`}</span>
+            </p>
+          )}
           {s.themes.length === 0 && <p className="text-sm text-muted">No themes with verified quotes yet.</p>}
           {s.themes.map((t) => (
             <div key={t.title} className="rounded-2xl border border-line p-4">

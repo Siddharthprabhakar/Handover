@@ -1,15 +1,15 @@
 # Security and robustness backlog
 
-Things found in the audit and while building. Nothing here is fixed yet unless it says so. Ordered by how much it matters.
+Things found in the audit and while building. Items marked FIXED are done. Ordered by how much it matters.
 Checked against the code on Nov 3, 2026. "Not verified" means I believe it but did not prove it.
 
 ## Fix before the submission (small, high value)
 
-1. **Open redirect after sign-in** (`src/components/auth/LoginForm.tsx:27`)
+1. **FIXED. Open redirect after sign-in** (`src/components/auth/LoginForm.tsx:27`)
    The check is `next.startsWith("/")`. A link like `/login?next=//evil.example` passes it and sends the person to another site after they sign in.
    Fix: accept only paths that start with a single `/` and not `//` or `/\`.
 
-2. **Handoff links are too short to be secret** (`src/app/api/handoff/route.ts:67`)
+2. **FIXED. Handoff links are too short to be secret** (`src/app/api/handoff/route.ts:67`)
    The token is `hf-` plus 8 hex characters (32 bits). Check-in links already use a full UUID.
    Fix: `hf-${crypto.randomUUID().replace(/-/g, "")}`. Old links keep working; only new ones change.
 
@@ -63,6 +63,12 @@ Checked against the code on Nov 3, 2026. "Not verified" means I believe it but d
 16. **No automated tests.** The access check in `src/lib/files.ts` and the limit rules in `src/lib/limits.ts` should each have one.
 17. **`npm audit` reports advisories** after the last installs. Not triaged.
 18. **README.md and docs/BUILD_PLAN.md are out of date** (they mention Resend, `DEMO_EMAIL_TO` and `npm run seed`).
+
+## Added since
+
+- An hourly budget on model calls (`MUSE_CALLS_PER_HOUR`, default 150, per server instance) so loops and repeated clicks cannot drain the credits.
+- On Vercel, a missing Supabase variable returns a clear 503 instead of silently showing the in-memory sample lab.
+- A shared judge login (`JUDGE_EMAIL`) skips the authenticator code. Create that Supabase user before setting the variable, and turn on Confirm email, or a stranger could claim the address through open sign-up. The judge account cannot invite real email addresses or delete projects.
 
 ## Already in place
 

@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check": "tsx --env-file=.env.local scripts/check-env.ts"
+    "check": "tsx --env-file=.env.local scripts/check-env.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "verify:meta": "tsx --env-file=.env.local scripts/verify-meta.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

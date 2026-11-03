@@ -27,7 +27,9 @@ async function handle(req: Request) {
 
   try {
     const raw = await museJson("synthesis", synthesisPrompt({ name: project.name, goal: project.goal }, rqs, interviews), heuristicSynthesis(rqs, interviews));
-    const result: StoredSynthesis = { ...groundSynthesis(raw, interviews, rqs.length), at: new Date().toISOString(), based_on: interviews.length };
+    const grounded = groundSynthesis(raw, interviews, rqs.length);
+    const count = (r: typeof raw) => r.themes.reduce((n, t) => n + t.evidence.length, 0);
+    const result: StoredSynthesis = { ...grounded, at: new Date().toISOString(), based_on: interviews.length, checked: { proposed: count(raw), kept: count(grounded) } };
     await update("projects", project.id, { synthesis: result });
     return Response.json({ synthesis: result });
   } catch (e) {

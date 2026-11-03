@@ -3,7 +3,7 @@ import type { Synthesis } from "./schemas";
 import type { FileRow } from "./seed";
 
 export type SynthesisResult = z.infer<typeof Synthesis>;
-export type StoredSynthesis = SynthesisResult & { at: string; based_on: number };
+export type StoredSynthesis = SynthesisResult & { at: string; based_on: number; checked?: { proposed: number; kept: number } }; // checked: quotes Muse proposed vs. quotes found word for word in the transcripts
 export type Interview = { participant: string; title: string; text: string };
 
 const PER_INTERVIEW = 6000; // characters
