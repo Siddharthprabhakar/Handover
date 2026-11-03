@@ -1,10 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isJudge } from "./lib/judge";
 
 // Optimistic gate: refreshes the session cookies and sends people to the right screen. Every page and
 // API route still checks the session itself (src/lib/session.ts); this is not the only protection.
-const OPEN = ["/login", "/signup", "/checkin/", "/handoff/", "/api/checkin", "/api/handoff", "/api/files/", "/api/calendar/", "/api/cron/", "/logout"];
-const TOKEN_FLOWS = ["/checkin/", "/handoff/", "/api/checkin", "/api/handoff", "/api/files/", "/api/calendar/", "/api/cron/", "/logout"];
+const OPEN = ["/login", "/signup", "/api/judge", "/checkin/", "/handoff/", "/api/checkin", "/api/handoff", "/api/files/", "/api/calendar/", "/api/cron/", "/logout"];
+const TOKEN_FLOWS = ["/api/judge", "/checkin/", "/handoff/", "/api/checkin", "/api/handoff", "/api/files/", "/api/calendar/", "/api/cron/", "/logout"];
 const starts = (path: string, list: string[]) => list.some((p) => (p.endsWith("/") ? path.startsWith(p) : path === p || path.startsWith(`${p}/`)));
 
 export async function proxy(request: NextRequest) {
@@ -35,6 +36,8 @@ export async function proxy(request: NextRequest) {
   const user = claimsData?.claims ? { id: claimsData.claims.sub } : null;
   if (!user) return starts(path, OPEN) ? response : go(`/login?next=${encodeURIComponent(path)}`);
   if (starts(path, TOKEN_FLOWS)) return response;
+
+  if (isJudge(claimsData?.claims?.email)) return path === "/login" || path === "/signup" ? (request.nextUrl.searchParams.has("fresh") ? response : go("/")) : response; // shared judge account: no second factor
 
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   const needsSetup = aal?.nextLevel === "aal1"; // no second factor yet: make them add one

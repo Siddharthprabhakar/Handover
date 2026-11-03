@@ -1,10 +1,11 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { insert, list, personWithLab, remove, usingSupabase } from "./db";
+import { isJudge } from "./judge";
 import { DEMO_LAB } from "./seed";
 import { createServerSupabase } from "./supabase/server";
 
-export type Session = { personId: string; name: string; email: string; labId: string; labName: string; demo: boolean };
+export type Session = { personId: string; name: string; email: string; labId: string; labName: string; demo: boolean; judge: boolean };
 
 // A short memory of who a signed-in user is, so most clicks skip the database lookup.
 // Safe to keep for a minute: the user id comes from a verified token, and only the display name could be stale.
@@ -18,13 +19,14 @@ const KNOWN_FOR_MS = 60_000;
 export const getSession = cache(async (): Promise<Session | null> => {
   if (!usingSupabase) {
     const [p] = await list("people", { col: "role", eq: "professor" });
-    return { personId: p.id, name: p.name, email: p.email, labId: DEMO_LAB, labName: "Demo lab", demo: true };
+    return { personId: p.id, name: p.name, email: p.email, labId: DEMO_LAB, labName: "Demo lab", demo: true, judge: false };
   }
   const sb = await createServerSupabase();
   // the token signature is verified locally: no network call to Supabase on every request
   const { data } = await sb.auth.getClaims();
   const claims = data?.claims;
-  if (!claims || claims.aal !== "aal2") return null;
+  const judge = isJudge(claims?.email);
+  if (!claims || (claims.aal !== "aal2" && !judge)) return null; // the judge demo account has no authenticator
 
   const userId = claims.sub;
   const hit = known.get(userId);
@@ -49,7 +51,7 @@ export const getSession = cache(async (): Promise<Session | null> => {
       if (!found) throw e;
     }
   }
-  const s: Session = { personId: found.person.id, name: found.person.name, email: found.person.email, labId: found.person.lab_id, labName: found.labName, demo: false };
+  const s: Session = { personId: found.person.id, name: found.person.name, email: found.person.email, labId: found.person.lab_id, labName: found.labName, demo: false, judge };
   known.set(userId, { s, at: Date.now() });
   return s;
 });

@@ -19,6 +19,7 @@ async function handle(req: Request) {
   const session = await getSession();
   if (!session) return Response.json({ error: "Sign in required" }, { status: 401 });
   const { name, email, program } = body.data;
+  if (session.judge && !email.endsWith(".invalid")) return Response.json({ error: "The shared demo cannot send real email. Use an address ending in .invalid, for example sam@demo.invalid." }, { status: 403 });
 
   let lab = await loadLab(session.labId);
   if (lab.people.some((p) => p.email.toLowerCase() === email)) return Response.json({ error: "Someone with that email is already in your lab" }, { status: 409 });

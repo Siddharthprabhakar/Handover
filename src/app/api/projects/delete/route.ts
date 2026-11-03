@@ -14,6 +14,7 @@ export async function POST(req: Request) {
   if (!body.success) return Response.json({ error: "Enter the 6-digit code from your authenticator app" }, { status: 400 });
   const session = await getSession();
   if (!session) return Response.json({ error: "Sign in required" }, { status: 401 });
+  if (session.judge) return Response.json({ error: "Deleting projects is switched off in the shared demo." }, { status: 403 });
   const project = (await loadLab(session.labId)).projects.find((p) => p.id === body.data.projectId);
   if (!project) return Response.json({ error: "Project not found" }, { status: 404 });
 
