@@ -67,7 +67,7 @@ export function Btn({ href, children, kind = "out", small = false }: { href: str
 
 export function PageHeader({ title, sub, back, right }: { title: string; sub?: string; back?: { href: string; label: string }; right?: ReactNode }) {
   return (
-    <div className="flex items-center gap-3 px-2 py-1">
+    <div className="flex flex-wrap items-center gap-3 px-2 py-1">
       <div className="flex-1">
         {back && (
           <Link href={back.href} className="text-[13px] font-semibold text-crimson">
@@ -85,7 +85,7 @@ export function PageHeader({ title, sub, back, right }: { title: string; sub?: s
 
 export function ActionBar({ hint, children }: { hint?: string; children: ReactNode }) {
   return (
-    <div className="sticky bottom-4 mt-auto flex items-center gap-2.5 rounded-[20px] bg-surface px-5 py-3">
+    <div className="sticky bottom-4 mt-auto flex flex-wrap items-center gap-2.5 rounded-[20px] bg-surface px-5 py-3">
       {hint && <span className="text-[13px] text-muted">{hint}</span>}
       <span className="flex-1" />
       {children}

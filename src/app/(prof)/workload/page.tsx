@@ -16,7 +16,8 @@ export default async function Workload() {
     <>
       <PageHeader title="Workload" sub="Capacity, limits and overtime. Limits protect RAs; the exception path keeps you in control." />
       <div className="grid items-start gap-4 lg:grid-cols-[1fr_320px]">
-        <Card className="!p-6">
+        <Card className="overflow-x-auto !p-6">
+        <div className="min-w-[760px]">
           <div className="grid grid-cols-[200px_160px_90px_1fr_110px] gap-3 py-2 text-xs font-semibold text-muted">
             <span>Person</span><span>Open tasks</span><span>Hours</span><span>Status</span><span />
           </div>
@@ -40,7 +41,8 @@ export default async function Workload() {
               </div>
             );
           })}
-        </Card>
+        </div>
+      </Card>
 
         <div className="flex flex-col gap-4">
           <Card className="flex flex-col gap-2.5">

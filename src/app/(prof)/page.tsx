@@ -47,7 +47,7 @@ export default async function LabOverview() {
             <span className="text-[13px] text-muted">RAs on track</span>
             <div className="mt-1.5 font-heading text-[46px] font-medium leading-none">{onTrackPct}%</div>
           </div>
-          <div className="grid grid-cols-8 gap-[5px]">
+          <div className="grid shrink-0 grid-cols-[repeat(8,12px)] gap-[5px]">
             {Array.from({ length: 32 }, (_, i) => <i key={i} className={`h-3 w-3 rounded-full ${i < dots ? "bg-dark" : "bg-crimson"}`} />)}
           </div>
         </Card>

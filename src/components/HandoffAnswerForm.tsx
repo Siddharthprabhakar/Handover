@@ -58,7 +58,7 @@ export function HandoffAnswerForm({ token, first, thanks, questions, initial, re
         </div>
       </div>
 
-      <div className="sticky bottom-4 mt-4 flex items-center gap-2.5 rounded-[20px] bg-surface px-5 py-3">
+      <div className="sticky bottom-4 mt-4 flex flex-wrap items-center gap-2.5 rounded-[20px] bg-surface px-5 py-3">
         <span className="text-[13px] text-muted">{error ? <span className="text-crimson">{error}</span> : state === "draft" ? "Draft saved." : `${answered} of ${questions.length} answered. You can save a draft any time.`}</span>
         <span className="flex-1" />
         <button type="button" disabled={state === "saving"} onClick={() => save(false)} className="rounded-full border border-line px-[18px] py-2.5 text-sm font-semibold disabled:opacity-50">Save draft</button>

@@ -44,7 +44,8 @@ export default async function Checkins() {
       <div className="flex gap-2 px-2"><Chip tone="dark">Nov 2 · this week</Chip></div>
 
       <div className="grid items-start gap-4 lg:grid-cols-[1fr_320px]">
-        <Card className="!p-6">
+        <Card className="overflow-x-auto !p-6">
+        <div className="min-w-[900px]">
           <div className="grid grid-cols-[170px_100px_130px_1fr_100px] gap-3 py-2 text-xs font-semibold text-muted">
             <span>Person</span><span>Status</span><span>Projects</span><span>What Muse understood</span><span>Flag</span>
           </div>
@@ -57,7 +58,8 @@ export default async function Checkins() {
               <span>{flag ? <Chip tone={flag.tone}>{flag.label}</Chip> : <span className="text-muted">—</span>}</span>
             </div>
           ))}
-        </Card>
+        </div>
+      </Card>
 
         <div className="flex flex-col gap-4">
           <Card className="flex flex-col gap-2.5">
