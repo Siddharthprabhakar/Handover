@@ -54,7 +54,7 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
           <h2 className="font-heading text-xl font-bold">Journey</h2>
           <Chip tone={project.kind === "lab" ? "crimson" : "ok"}>{project.kind === "lab" ? "Lab" : "Thesis"}</Chip>
           <span className="flex-1" />
-          <span className="text-[13px] text-muted">Updates from weekly check-ins and completed tasks</span>
+          <span className="hidden text-[13px] text-muted sm:inline">Updates from weekly check-ins and completed tasks</span>
         </div>
         <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 xl:grid-cols-7">
           {phases.map((p) => (

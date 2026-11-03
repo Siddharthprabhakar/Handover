@@ -22,7 +22,7 @@ export default async function LabOverview() {
     <>
       <PageHeader title="Good morning, Dr. Rivera" sub={`Week of Nov 2 · ${submitted} of ${lab.ras.length} check-ins in`} />
 
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card className="flex flex-col gap-2">
           <span className="text-[13px] text-muted">Check-ins this week</span>
           <div className="font-heading text-[52px] font-medium leading-none">
@@ -42,7 +42,7 @@ export default async function LabOverview() {
             {digest.needs_tasks.map((n) => <Chip key={n} tone="ok">{n.split(" ")[0]}</Chip>)}
           </div>
         </Card>
-        <Card className="flex items-center gap-3.5">
+        <Card className="flex flex-wrap items-center gap-3.5">
           <div>
             <span className="text-[13px] text-muted">RAs on track</span>
             <div className="mt-1.5 font-heading text-[46px] font-medium leading-none">{onTrackPct}%</div>
