@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { ProjectPeople } from "@/components/ProjectPeople";
 import { ProjectSummary } from "@/components/ProjectSummary";
 import { StudySetup } from "@/components/StudySetup";
+import { DeleteProject } from "@/components/DeleteProject";
 import { PhaseEditor } from "@/components/PhaseEditor";
 import { PhaseControl } from "@/components/PhaseControl";
 import { TaskToggle } from "@/components/TaskToggle";
@@ -168,6 +169,7 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
       </div>
 
       <ActionBar hint={`Now in ${nowName}. You decide when the project moves on.`}>
+        <DeleteProject projectId={id} name={project.name} demo={session.demo} />
         <PhaseControl projectId={id} current={project.current_phase} names={project.phase_template} warning={warning} gate={gate} />
       </ActionBar>
     </>
