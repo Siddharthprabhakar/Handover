@@ -9,6 +9,7 @@ export type Person = {
 export type Project = {
   id: string; lab_id: string; name: string; kind: "lab" | "thesis"; goal: string | null;
   phase_template: string[]; current_phase: number; deadline: string | null;
+  phase_log?: { from: number; to: number; by: string; at: string }[]; // who moved the project on, newest last
 };
 export type ProjectMember = { project_id: string; person_id: string };
 export type Task = {

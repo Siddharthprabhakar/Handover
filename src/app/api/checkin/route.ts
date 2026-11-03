@@ -68,6 +68,10 @@ export async function POST(req: Request) {
   const quickBlockers = await saveBlockers(quick);
   await update("checkins", checkin.id, { raw: { text, fields: answers }, parsed: quick, submitted_at: new Date().toISOString() });
 
+  // ticking last week's planned tasks marks them done: exact titles, and only this person's own open tasks
+  const ticked = new Set(answers.flatMap((a) => a.done));
+  if (ticked.size) for (const t of await list("tasks", { col: "assignee", eq: checkin.person_id })) if (t.status === "open" && ticked.has(t.title)) await update("tasks", t.id, { status: "done" });
+
   // 2. then let Muse read it properly, which takes several seconds, and swap in its version
   if (museMode() === "live") {
     after(async () => {

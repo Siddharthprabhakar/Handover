@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProjectPeople } from "@/components/ProjectPeople";
 import { ProjectSummary } from "@/components/ProjectSummary";
-import { Avatar, Card, Chip, PageHeader } from "@/components/ui";
+import { PhaseControl } from "@/components/PhaseControl";
+import { TaskToggle } from "@/components/TaskToggle";
+import { ActionBar, Avatar, Card, Chip, PageHeader } from "@/components/ui";
 import { fmtDate, initials, loadLab } from "@/lib/lab";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +42,16 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
       .filter((c) => c.submitted_at && members.some((m) => m.id === c.person_id) && !blockers.some((b) => b.person_id === c.person_id)
         && (c.parsed as { projects: { project: string }[] } | null)?.projects.some((x) => x.project === project.name))
       .map((c) => ({ at: c.submitted_at!, text: `${lab.byId.get(c.person_id)?.name.split(" ")[0]}: ${(c.raw?.text ?? "").slice(0, 110)}`, tag: "" })),
-  ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 4);
+    ...(project.phase_log ?? []).map((l) => ({ at: l.at, text: `Moved to ${project.phase_template[l.to - 1]} by ${l.by}`, tag: "" })),
+  ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6);
+
+  // moving on is a person's call; the task list only suggests it
+  const nowName = project.phase_template[project.current_phase - 1];
+  const phaseTasks = tasks.filter((t) => t.phase === project.current_phase);
+  const openTasks = phaseTasks.filter((t) => t.status !== "done").length;
+  const openBlockers = blockers.filter((b) => b.phase === project.current_phase).length;
+  const ready = phaseTasks.length > 0 && openTasks === 0 && project.current_phase < project.phase_template.length;
+  const warning = [openTasks ? `${openTasks} task${openTasks > 1 ? "s" : ""} in ${nowName} ${openTasks > 1 ? "are" : "is"} still open.` : "", openBlockers ? `${openBlockers} blocker${openBlockers > 1 ? "s are" : " is"} still open.` : ""].filter(Boolean).join(" ");
 
   const tone = { done: "bg-dark text-white", prog: "bg-crimson text-white", todo: "bg-bg text-ink" } as const;
   const label = { done: "Done", prog: "In progress", todo: "Not started" } as const;
@@ -84,6 +95,13 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
         </div>
       </Card>
 
+      {ready && (
+        <Card className="!bg-crimson-soft">
+          <b>All {phaseTasks.length} tasks in {nowName} are done.</b>
+          <span className="block text-sm text-muted">{openBlockers ? `${openBlockers} blocker${openBlockers > 1 ? "s are" : " is"} still open. ` : ""}Ready to move on to {project.phase_template[project.current_phase]}? Use the button at the bottom.</span>
+        </Card>
+      )}
+
       <ProjectSummary projectId={id} />
       <ProjectPeople projectId={id} members={members.map((m) => ({ id: m.id, name: m.name }))} others={lab.ras.filter((r) => !members.some((m) => m.id === r.id)).map((r) => ({ id: r.id, name: r.name }))} />
 
@@ -102,9 +120,7 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
           {curTasks.length === 0 && <p className="mt-3 text-sm text-muted">No tasks in this phase yet.</p>}
           {curTasks.map((t) => (
             <div key={t.id} className="flex items-center gap-3 border-t border-line py-3 first:border-t-0">
-              <span className={`grid h-[22px] w-[22px] shrink-0 place-items-center rounded-[7px] ${t.status === "done" ? "bg-crimson text-white" : "border-[1.5px] border-line"}`}>
-                {t.status === "done" && <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}
-              </span>
+              <TaskToggle taskId={t.id} done={t.status === "done"} />
               <span className={`flex-1 font-medium ${t.status === "done" ? "text-muted" : ""}`}>{t.title}</span>
               <Chip tone={t.status === "done" ? "ok" : "light"}>{t.status === "done" ? "done" : `${t.est_hours} h`}</Chip>
               {t.assignee && <Avatar initials={initials(lab.byId.get(t.assignee)!.name)} size={26} />}
@@ -126,6 +142,10 @@ export default async function Journey({ params, searchParams }: PageProps<"/proj
           ))}
         </Card>
       </div>
+
+      <ActionBar hint={`Now in ${nowName}. You decide when the project moves on.`}>
+        <PhaseControl projectId={id} current={project.current_phase} names={project.phase_template} warning={warning} />
+      </ActionBar>
     </>
   );
 }
