@@ -17,6 +17,7 @@ export function FileEditor({ file, projects }: { file: FileRow; projects: { id: 
   const [turns, setTurns] = useState<Turn[]>(file.transcript ?? []);
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState("");
+  const demo = file.storage_path.startsWith("demo/"); // sample transcript with no audio behind it
   const analysis = file.analysis as Analysis | null;
   const speakers = [...new Set(turns.map((t) => t.speaker).filter((s): s is string => Boolean(s)))];
 
@@ -52,7 +53,7 @@ export function FileEditor({ file, projects }: { file: FileRow; projects: { id: 
   return (
     <>
       <Card className="flex flex-col gap-3">
-        <audio controls preload="none" src={`/api/files/${file.id}/audio`} className="w-full" />
+        {!demo && <audio controls preload="none" src={`/api/files/${file.id}/audio`} className="w-full" />}
         <div className="grid gap-3 sm:grid-cols-3">
           <input className={input} value={title} onChange={(e) => setTitle(e.target.value)} aria-label="Title" />
           <select className={input} value={projectId} onChange={(e) => setProjectId(e.target.value)} aria-label="Project">
@@ -127,7 +128,7 @@ export function FileEditor({ file, projects }: { file: FileRow; projects: { id: 
 
       <ActionBar hint={busy || msg}>
         <button type="button" disabled={!!busy} onClick={remove} className={`${ghost} text-crimson`}>Delete</button>
-        <a href={`/api/files/${file.id}/audio?download=1`} className={ghost}>Download audio</a>
+        {!demo && <a href={`/api/files/${file.id}/audio?download=1`} className={ghost}>Download audio</a>}
         <button type="button" disabled={!turns.length} onClick={download} className={ghost}>Download text</button>
         <button type="button" disabled={!!busy || file.status !== "ready"} onClick={() => patch({ turns }, "Saving…", "Transcript saved")} className={ghost}>Save transcript</button>
         <button type="button" disabled={!!busy || file.status !== "ready"} onClick={() => call("Muse is reading…", `/api/files/${file.id}/analyze`, { method: "POST" }, "Analysis ready")} className="rounded-full bg-crimson px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50">

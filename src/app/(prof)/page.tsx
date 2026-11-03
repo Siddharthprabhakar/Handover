@@ -1,5 +1,6 @@
 import { requireProfessor } from "@/lib/session";
 import { Avatar, Btn, Card, Chip, PageHeader } from "@/components/ui";
+import { LoadDemo } from "@/components/LoadDemo";
 import { ReminderButton } from "@/components/ReminderButton";
 import { Suspense } from "react";
 import { DigestSkeleton, MuseDigestCard } from "@/components/DigestSlot";
@@ -23,6 +24,11 @@ export default async function LabOverview() {
               <Btn href={href}>{label}</Btn>
             </div>
           ))}
+        </Card>
+        <Card className="flex flex-col gap-3">
+          <b>Just looking around?</b>
+          <span className="text-sm text-muted">Fill this lab with made-up people, projects, check-ins and an interview transcript. Nobody is emailed: the addresses cannot receive mail.</span>
+          <LoadDemo />
         </Card>
       </>
     );
