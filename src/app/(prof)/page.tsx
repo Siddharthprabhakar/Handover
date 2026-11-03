@@ -101,7 +101,7 @@ export default async function LabOverview() {
             <span className="rounded-full bg-crimson-soft px-2.5 py-0.5 text-xs font-semibold text-crimson">{attention}</span>
           </div>
           {/* long lists scroll inside the column so the rest of the page keeps its shape */}
-          <div className="flex max-h-[640px] flex-col gap-3 overflow-y-auto pr-1">
+          <div className="flex flex-col gap-3 overflow-y-auto pr-1 lg:max-h-[calc(100vh-24rem)] lg:min-h-[320px]">
           {digest.stuck.map((s) => {
             const p = byName.get(s.person);
             return (
