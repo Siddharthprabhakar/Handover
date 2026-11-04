@@ -4,9 +4,9 @@
 
 Built solo for the Meta Global AI Developer Hackathon (Indie Developer track, theme: Build for Your World), by an HCI student who lives this problem. Everything in this repository was built during the hackathon window.
 
-- **Live demo:** `<site link>`
+- **Live demo:** https://handover-dusky.vercel.app/
 - **Judge login (no authenticator code needed):** `judge@handover.demo` / `MetaMuse2026`
-- **Demo video:** `<video link>`
+- **Demo video:** https://youtu.be/5ULRvvWC-4g
 
 ## The problem
 
