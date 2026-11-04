@@ -2,6 +2,7 @@ import type { JobName } from "./schemas";
 
 // Saved sample answers, used when MUSE_MOCK=1 or no API key is set.
 export const MOCK: Record<JobName, unknown> = {
+  voicesort: { challenges: "", plans: "", support: "", needs_tasks: false },
   filing: { project: null, title: "Recording", reason: "" },
   synthesis: { themes: [], coverage: [], gaps: [] },
   projectplan: { name: "Imported project", kind: "lab", goal: "", deadline: null, phases: [], resources: [], communication: [] },

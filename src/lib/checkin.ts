@@ -4,9 +4,10 @@ import type { CheckinParse } from "./schemas";
 export type Parsed = z.infer<typeof CheckinParse>;
 export type ProjectInfo = { name: string; phase: number };
 
-export type Answer = { projectName: string; challenges: string; plans: string; support: string; needsTasks: boolean; done?: string[] };
+export type Answer = { projectName: string; challenges: string; plans: string; support: string; needsTasks: boolean; done?: string[]; skipped?: ("challenges" | "plans" | "support")[] }; // skipped: questions a voice check-in did not cover
 
 /** Plain text the RA wrote, grouped by project. Muse and the fallback both read this. */
+const SKIP_NAME = { challenges: "challenges", plans: "plans for next week", support: "support that would help" } as const;
 export function composeText(answers: Answer[]): string {
   return answers
     .map((a) =>
@@ -17,6 +18,7 @@ export function composeText(answers: Answer[]): string {
         a.plans && `Plans for next week: ${a.plans}`,
         a.support && `Support that would help: ${a.support}`,
         a.needsTasks ? "I need more tasks." : "",
+        ...(a.skipped ?? []).filter((k) => !a[k]).map((k) => `Not mentioned (${SKIP_NAME[k]}): the student did not cover this question in the voice check-in.`),
       ].filter(Boolean).join("\n"),
     )
     .join("\n\n");
@@ -37,6 +39,7 @@ export function heuristicParse(text: string, projects: ProjectInfo[]): Parsed {
       .map((p) => {
         const out = { done: [] as string[], blockers: [] as { quote: string }[], next: [] as string[], support: [] as string[], needs: false };
         for (const line of p.body) {
+          if (/^Not mentioned \(/.test(line)) continue;
           const m = line.match(/^(Challenges|Plans for next week|Support that would help|Finished from last week):\s*(.*)$/);
           const label = m?.[1] ?? "Challenges";
           const value = m ? m[2] : line;

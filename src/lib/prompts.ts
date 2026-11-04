@@ -6,6 +6,15 @@ Rules:
 - Keep a kind, plain tone.
 - Reply with one JSON object only, no markdown, matching the shape described.`;
 
+export function voiceSortPrompt(text: string) {
+  return `A student spoke their weekly check-in. This is the transcript:
+"""${text}"""
+
+Sort what they said into the three answers of the form. Use the student's own sentences, lightly tidied (fix a repeated word, add punctuation). Never add facts, advice or words they did not say, and never copy one sentence into two answers.
+Return JSON: {"challenges": string (challenges, confusions, anything they are stuck on or need help with),"plans": string (what they plan to do next week),"support": string (support, workshops or materials that would help),"needs_tasks": boolean (true only if they said they want more tasks or have nothing to do)}
+If the student did not talk about a question at all, return "" for it. Do not guess.`;
+}
+
 export function checkinPrompt(text: string, projects: { name: string; phases: string[] }[]) {
   return `A research assistant wrote this weekly check-in:
 """${text}"""
@@ -13,7 +22,7 @@ export function checkinPrompt(text: string, projects: { name: string; phases: st
 Their projects: ${JSON.stringify(projects)}
 
 Return JSON: {"projects":[{"project": string (one of their project names),"done": string[],"blockers":[{"quote": string copied from the text}],"next": string[],"support": string[],"phase": number|null (1-based index into that project's phases),"needs_tasks": boolean}]}
-Only include projects the text actually talks about. If the text mentions no blocker, use an empty array.`;
+A line starting "Not mentioned" lists a question the student skipped. It is not an answer. Only include projects the text actually talks about. If the text mentions no blocker, use an empty array.`;
 }
 
 export function digestPrompt(
@@ -25,7 +34,7 @@ ${JSON.stringify(rows)}
 Open blockers: ${JSON.stringify(blockers)}
 
 Return JSON: {"summary": string (5 to 7 plain sentences, about 110 to 150 words: what moved forward in each project, who is blocked and why, what help or follow-up is needed, and one thing the professor should do first),"on_track": string[] (names),"stuck":[{"person": name,"quote": exact words from their check-in}],"needs_tasks": string[] (names who asked for tasks),"missing": string[] (names with no check-in),"support": string[] (what people asked help with, names in brackets)}.
-Use only names that appear in the data.`;
+A check-in line starting "Not mentioned" means the student skipped that question: say so briefly when it matters. Use only names that appear in the data.`;
 }
 
 export function planPrompt(input: { kind: string; name: string; goal: string; deadline: string; phases: readonly string[]; people: { name: string; openTasks: number; hours: number; weeklyHours: number }[] }) {

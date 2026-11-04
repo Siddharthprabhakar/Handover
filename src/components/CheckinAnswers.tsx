@@ -24,8 +24,8 @@ export function CheckinAnswers({ name, text }: { name: string; text: string }) {
               <div key={i} className="flex flex-col gap-2.5">
                 {s.project && <b className="font-heading text-[17px]">{s.project}</b>}
                 {s.lines.map((l, j) => (
-                  <div key={j} className="rounded-2xl bg-bg p-3.5 text-sm leading-relaxed">
-                    {l.label && <b className="mb-1 block text-xs text-muted">{l.label}</b>}
+                  <div key={j} className={`rounded-2xl p-3.5 text-sm leading-relaxed ${l.label.startsWith("Not mentioned") ? "bg-crimson-soft" : "bg-bg"}`}>
+                    {l.label && <b className={`mb-1 block text-xs ${l.label.startsWith("Not mentioned") ? "text-crimson" : "text-muted"}`}>{l.label}</b>}
                     {l.value}
                   </div>
                 ))}

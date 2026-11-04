@@ -19,6 +19,7 @@ const Body = z.object({
         support: z.string().max(4000).default(""),
         needsTasks: z.boolean().default(false),
         done: z.array(z.string().max(300)).max(20).default([]),
+        skipped: z.array(z.enum(["challenges", "plans", "support"])).max(3).default([]),
       }),
     )
     .min(1),
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     .filter((a) => a.project && (a.challenges.trim() || a.plans.trim() || a.support.trim() || a.needsTasks || a.done.length));
   if (!filled.length) return Response.json({ error: "Write at least one answer" }, { status: 400 });
 
-  const text = composeText(filled.map((a) => ({ projectName: a.project!.name, challenges: a.challenges.trim(), plans: a.plans.trim(), support: a.support.trim(), needsTasks: a.needsTasks, done: a.done })));
+  const text = composeText(filled.map((a) => ({ projectName: a.project!.name, challenges: a.challenges.trim(), plans: a.plans.trim(), support: a.support.trim(), needsTasks: a.needsTasks, done: a.done, skipped: a.skipped })));
   const info = mine.map((p) => ({ name: p.name, phase: p.current_phase }));
 
   // blockers become visible on the project journey; skip ones already open. Returns the ids it created.

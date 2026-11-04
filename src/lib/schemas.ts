@@ -83,5 +83,8 @@ export const Filing = z.object({
   reason: z.string(),
 });
 
-export const schemas = { checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary, interview: InterviewAnalysis, projectplan: ProjectImport, synthesis: Synthesis, filing: Filing };
+// a spoken check-in sorted into the form's three answers; "" means the student did not talk about that question
+export const VoiceSort = z.object({ challenges: z.string(), plans: z.string(), support: z.string(), needs_tasks: z.boolean() });
+
+export const schemas = { voicesort: VoiceSort, checkin: CheckinParse, digest: Digest, plan: Plan, questions: HandoffQuestions, brief: HandoffBrief, summary: ProjectSummary, interview: InterviewAnalysis, projectplan: ProjectImport, synthesis: Synthesis, filing: Filing };
 export type JobName = keyof typeof schemas;

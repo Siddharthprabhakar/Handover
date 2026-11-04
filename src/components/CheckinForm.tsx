@@ -18,13 +18,24 @@ export function CheckinForm({ token, name, projects, planned, voice }: { token: 
   const [f, setF] = useState({ challenges: "", plans: "", support: "", needsTasks: false });
   const [extra, setExtra] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [voiceUsed, setVoiceUsed] = useState(false); // after a spoken check-in, empty answers are flagged to the professor as not mentioned
   const [error, setError] = useState("");
+
+  /** The words come back from the recording: let Muse sort them into the three answers. If that fails the text lands under challenges. */
+  async function fromVoice(text: string) {
+    setVoiceUsed(true);
+    const res = await fetch("/api/checkin/sort", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, text }) });
+    const r = res.ok ? await res.json().catch(() => null) : null;
+    const add = (old: string, v: string) => (v ? (old ? `${old}
+${v}` : v) : old);
+    setF((x) => (r ? { challenges: add(x.challenges, r.challenges), plans: add(x.plans, r.plans), support: add(x.support, r.support), needsTasks: x.needsTasks || r.needs_tasks } : { ...x, challenges: add(x.challenges, text) }));
+  }
 
   async function send() {
     setBusy(true);
     setError("");
     const answers = [
-      { projectId: main.id, ...f, done },
+      { projectId: main.id, ...f, done, skipped: voiceUsed ? ((["challenges", "plans", "support"] as const).filter((k) => !f[k].trim())) : [] },
       ...others.map((p) => ({ projectId: p.id, challenges: extra[p.id] ?? "", plans: "", support: "", needsTasks: false, done: [] })),
     ];
     const res = await fetch("/api/checkin", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token, answers }) });
@@ -59,13 +70,16 @@ export function CheckinForm({ token, name, projects, planned, voice }: { token: 
               })}
             </>
           )}
-          <VoiceCheckin voice={voice} token={token} onText={(t) => setF((x) => ({ ...x, challenges: x.challenges ? `${x.challenges}\n${t}` : t }))} />
+          <VoiceCheckin voice={voice} token={token} onText={fromVoice} />
           <Label>What challenges or confusions did you have? Still need help?</Label>
           <textarea rows={2} className={`${field} mt-1.5`} value={f.challenges} onChange={(e) => setF({ ...f, challenges: e.target.value })} />
+          {voiceUsed && !f.challenges.trim() && <p className="mt-1 text-xs font-semibold text-crimson">You did not mention this one. Add it if you like, or leave it and your professor will see it was skipped.</p>}
           <Label>Plans for next week</Label>
           <textarea rows={2} className={`${field} mt-1.5`} value={f.plans} onChange={(e) => setF({ ...f, plans: e.target.value })} />
+          {voiceUsed && !f.plans.trim() && <p className="mt-1 text-xs font-semibold text-crimson">You did not mention this one. Add it if you like, or leave it and your professor will see it was skipped.</p>}
           <Label>Any support, workshops or materials that would help?</Label>
           <textarea rows={2} className={`${field} mt-1.5`} value={f.support} onChange={(e) => setF({ ...f, support: e.target.value })} />
+          {voiceUsed && !f.support.trim() && <p className="mt-1 text-xs font-semibold text-crimson">You did not mention this one. Add it if you like, or leave it and your professor will see it was skipped.</p>}
           <button type="button" onClick={() => setF({ ...f, needsTasks: !f.needsTasks })} className="mt-4 flex items-center gap-3">
             <span className={`grid h-[22px] w-[22px] place-items-center rounded-[7px] ${f.needsTasks ? "bg-crimson text-white" : "border-[1.5px] border-line"}`}>
               {f.needsTasks && <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}
