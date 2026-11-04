@@ -7,7 +7,7 @@ Position it as **human-subjects research that survives turnover**, not a project
 ## Before you hit record
 
 1. `npm run verify:meta` prints `ok` for all 10 jobs plus speech-to-text, and the sidebar badge says **Muse live · Meta**.
-2. Run `supabase/reset_data.sql`, then **Load demo lab** (People page). Fake people only; the demo addresses end in `.invalid` and never receive mail.
+2. Run `supabase/reset_data.sql`, then load the demo lab by running `fetch("/api/demo", { method: "POST" })` in the browser console while signed in. Fake people only; the demo addresses end in `.invalid` and never receive mail.
 3. Have a 20 to 30 second voice sample ready (you speaking as a student), and a 1 to 2 minute interview recording (two voices) saved as a file. Use a real recording of yourself, never a real participant.
 4. Browser at 1440 px wide, no bookmarks bar, notifications off. A terminal window ready in the repo folder.
 5. Do one full dry run. Record in one take if you can; cut only dead air.

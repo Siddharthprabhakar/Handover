@@ -5,7 +5,7 @@
 Built solo for the Meta Global AI Developer Hackathon (Indie Developer track, theme: Build for Your World), by an HCI student who lives this problem. Everything in this repository was built during the hackathon window.
 
 - **Live demo:** `<site link>`
-- **Judge login (no authenticator code needed):** `judge@handover.demo` / `<judge password>`
+- **Judge login (no authenticator code needed):** `judge@handover.demo` / `MetaMuse2026`
 - **Demo video:** `<video link>`
 
 ## The problem
@@ -72,7 +72,7 @@ npm run dev                       # http://localhost:3000
 
 1. In the Supabase SQL editor run `supabase/schema.sql`, then `schema_v3.sql` through `schema_v11.sql` in order. `verify.sql` checks that every update is in place.
 2. Sign up at `/signup` and add an authenticator app when asked.
-3. On the People page click **Load demo lab** to fill the lab with made-up people, three projects, check-ins, meetings and interview transcripts. `supabase/reset_data.sql` clears it again.
+3. The judge account already has the demo lab loaded: made-up people, three projects, check-ins, meetings and interview transcripts. To load it into your own lab, run `fetch("/api/demo", { method: "POST" })` in the browser console while signed in. `supabase/reset_data.sql` clears it again.
 
 Environment variables are listed in [`.env.example`](.env.example). `MODEL_API_KEY` is the Meta key, `MUSE_MODEL=muse-spark-1.3`, `MUSE_MOCK=0` turns live mode on. Set `JUDGE_EMAIL` to let one shared account skip the authenticator code.
 
